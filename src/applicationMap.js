@@ -14,6 +14,7 @@ let _modelMap = HashMap();
 let _doBefore = [];
 let _doAfter = [];
 let _componentMixins = [];
+let _loggingIsEnabled = false;
 
 let _model = {
     clear: () => Object.keys(_model).forEach( key => _.isFunction(_model[key]['clear']) && _model[key].clear())
@@ -27,7 +28,8 @@ Object.defineProperties(_app, {
     events: { value: {}, writable: false, enumerable: true },
     emitter: { value: emitter, writable: false, enumerable: true },
     assetManager: { value: assetManager, writable: false, enumerable: true },
-    map: { value: this, writable: false, enumerable: true }
+    map: { value: this, writable: false, enumerable: true },
+    loggingIsEnabled: { get: () => _loggingIsEnabled }
 });
 
 _applicationMap.registerModel = (modelName, model) => {
@@ -213,6 +215,14 @@ _applicationMap.mapView = viewClass => {
 
 _applicationMap.getViewModelByView = viewClass => {
     return _modelMap.get(viewClass);
+};
+
+_applicationMap.enableLogging = () => {
+    _loggingIsEnabled = true;
+};
+
+_applicationMap.disableLogging = () => {
+    _loggingIsEnabled = false;
 };
 
 export default _applicationMap;

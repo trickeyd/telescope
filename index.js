@@ -16,10 +16,13 @@ let start  = (...configs) => {
 
     // run the config methods
     configs.forEach(config => config());
+
     // now add listeners to events from application configs
     map.configs.forEach(config => {
         emitter.on(config.event).to(
-            (event, params) => middlewareRunner(event, params, config.sequence.concat(), config.isLoggable)
+            (event, params) => middlewareRunner(
+                event, params, config.sequence.concat(), config.isLoggable && map.loggingIsEnabled
+            )
         );
     });
 };
@@ -33,4 +36,4 @@ let middleware = {
     dispatchEvent
 };
 
-export { start, assetManager, emitter, map/*, Component*/, ComponentAccess, guards, middleware };
+export { start, assetManager, emitter, map, ComponentAccess, guards, middleware };

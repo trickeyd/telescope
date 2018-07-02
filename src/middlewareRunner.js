@@ -62,8 +62,8 @@ export default function middlewareRunner (event, params, sequence, isLoggable) {
             }
 
         } catch (err) {
-            console.log('---------> Error ended sequence!');
-            console.log(err);
+            isLoggable && console.log('---------> Error ended sequence!');
+            isLoggable && console.log(err);
             return;
         }
     };
