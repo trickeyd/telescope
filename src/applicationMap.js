@@ -28,8 +28,7 @@ Object.defineProperties(_app, {
     events: { value: {}, writable: false, enumerable: true },
     emitter: { value: emitter, writable: false, enumerable: true },
     assetManager: { value: assetManager, writable: false, enumerable: true },
-    map: { value: this, writable: false, enumerable: true },
-    loggingIsEnabled: { get: () => _loggingIsEnabled }
+    map: { value: this, writable: false, enumerable: true }
 });
 
 _applicationMap.registerModel = (modelName, model) => {
@@ -71,7 +70,8 @@ Object.defineProperties(_applicationMap, {
     'configs': { get: () => _configs },
     doBeforeMethods: { get: () => _doBefore },
     doAfterMethods: { get: () => _doAfter },
-    componentMixins: { get: () => _componentMixins }
+    componentMixins: { get: () => _componentMixins },
+    loggingIsEnabled: { get: () => _loggingIsEnabled }
 });
 
 _applicationMap.doBefore = (...middleware) => {

@@ -79,7 +79,7 @@ function macro (middlewares, isLoggable) {
         // _innerMacro calls itself with access to them
         let index = 0, length = middlewares.length;
 
-        let _innerMacro = async function (param) {
+        let _innerMacro = async function () {
             let method = middlewares[index++];
             method && isLoggable && console.log('macro method', method.name);
 
