@@ -46,4 +46,4 @@ let fetchJson = (url, body, method, headers, isSuccess) => {
 
 let defaultDetermineSuccess = res => (res.status >= 200) && (res.status <= 299);
 
-export default fetchJson;
+module.exports = fetchJson;
