@@ -27,4 +27,4 @@ let middleware = {
     dispatchEvent
 };
 
-export { start, assetManager, emitter, map, ComponentAccess, guards, middleware };
+module.exports = { start, assetManager, emitter, map, ComponentAccess, guards, middleware };

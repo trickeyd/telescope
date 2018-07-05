@@ -6,7 +6,6 @@ let assetManager    = require("../assetManager");
 let ChoiceBlock     = require('./Core').ChoiceBlock;
 let Scope           = require('./Core').Scope;
 let _               = require('lodash');
-let {map}           = require("../../index");
 
 
 let _applicationMap = {};
@@ -135,7 +134,7 @@ _applicationMap.disableLogging = () => {
     _loggingIsEnabled = false;
 };
 
-export default _applicationMap;
+module.exports = _applicationMap;
 
 
 

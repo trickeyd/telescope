@@ -4,9 +4,9 @@
  * @module eventBus
  */
 
-import HashMap from './HashMap';
+let HashMap = require('./HashMap');
 
-export default function Emitter(parentDispatcher) {
+mosule.exports = function Emitter(parentDispatcher) {
     let _Emitter = {};
 
     let _mapListenersByType = Object.create(null); // String -> Array(configOb)

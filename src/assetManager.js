@@ -58,4 +58,4 @@ _assetManager.getImageByKey = constSelectMethod => {
     return constSelectMethod(Object.assign({}, _constantToImage));
 };
 
-export default _assetManager;
+module.exports = _assetManager;

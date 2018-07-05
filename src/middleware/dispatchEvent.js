@@ -15,4 +15,4 @@ let dispatchEvent = (event, payload) => {
     return dispatchEvent;
 };
 
-export default dispatchEvent;
+module.exports = dispatchEvent;

@@ -1,8 +1,8 @@
-import assetManager from './assetManager';
-import globalEmitter from './globalEmitter';
-import applicationMap from "./core/applicationMap";
+let assetManager = require('./assetManager');
+let globalEmitter  = require('./globalEmitter');
+let applicationMap  = require("./core/applicationMap");
 
-export default ComponentAccess = (target, addMethodsToComponent, callCreatMappingsOnComponent) => {
+module.exports = ComponentAccess = (target, addMethodsToComponent, callCreatMappingsOnComponent) => {
 
     let getViewModel = target => {
         let viewModelClass = applicationMap.getViewModelByView(target.constructor);
