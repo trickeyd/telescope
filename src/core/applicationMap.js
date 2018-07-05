@@ -1,9 +1,12 @@
 'use strict';
 
-import HashMap from './HashMap';
-import emitter from "./globalEmitter";
-import assetManager from "./assetManager";
-import _ from 'lodash';
+let HashMap         = require('../HashMap');
+let emitter         = require("../globalEmitter");
+let assetManager    = require("../assetManager");
+let ChoiceBlock     = require('./Core').ChoiceBlock;
+let Scope           = require('./Core').Scope;
+let _               = require('lodash');
+let {map}           = require("../../index");
 
 
 let _applicationMap = {};
@@ -83,116 +86,23 @@ _applicationMap.doAfter = (...middleware) => {
 };
 
 _applicationMap.on = (event, isLoggable) => {
-    let sequence = [];
-    let step;
-    let ifStep;
     isLoggable = isLoggable === false ? false : true;
+    
+    let scope = Scope();
 
-    /**
-     * creates new step in sequence
-     * @returns {{do: _do, if: _newIf}}
-     * @private
-     */
-    let _then = () => {
-        ifStep = undefined;
-        step = sequence[sequence.length] = Object.create(null);
-        return { 'do':_do, 'if':_newIf }
-    };
+    // now add listeners to events from application configs
+    emitter.on(config.event).to( (event, params) => {
+        params = params || {};
+        isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
+        let data = {event, params, locals: {data: {}}};
+        let app = _applicationMap.cloneAppObject();
+        let next = () => console.log('finished');
 
+        scope.run(data, app, next);
+    });
+            //event, params, config.scope, config.isLoggable && map.loggingIsEnabled
 
-    /**
-     * /**
-     * Adds an array of middleware methods to the current step
-     * @param middlewares
-     * @returns {{then}}
-     * @private
-     */
-    let _do = (...middlewares) => {
-        step.exec = createFlatArray(middlewares);
-        return { get then() { return _then() }}
-    };
-
-
-
-    /**
-     * Adds an array of middleware methods to the current ifStep
-     * @param middlewares
-     * @returns {{else: _else, then: _then}}
-     * @private
-     */
-    let _ifDo = (...middlewares) => {
-        ifStep.exec = createFlatArray(middlewares);
-        return {
-            get else() { return _else(); },
-            get then() { return _then(); }
-        }
-    };
-
-
-
-    /**
-     * Sets the 'stop' property on the ifStep object to true
-     * and calls _ifDo with payload.
-     * @param middlewares
-     * @returns {{else, then}|{else: _else, then: _then}}
-     * @private
-     */
-    let _ifDoAndStop = (...middlewares) => {
-        ifStep.stop = true;
-        return _ifDo(middlewares);
-    };
-
-
-    /**
-     * Creates a new ifStep and adds it to the current step
-     * then calls and returns _if method
-     * @param guards
-     * @returns {{do}}
-     * @private
-     */
-    let _newIf = (...guards) => {
-        ifStep = {};
-        step.if = [ifStep];
-        return _if(guards);
-    };
-
-
-
-    /**
-     * adds new ifStep to current step.if array
-     * creates a 'guards' array containing a nullGuard
-     * @returns {{do: _do, if: _if}}
-     * @private
-     */
-    let _else = () => {
-        ifStep = {};
-        step.if.push(ifStep);
-        ifStep.guards = [nullGuard];
-        return { 'do' : _do, 'if' : _if }
-    };
-
-
-
-    /**
-     * creates a flat array of guards and adds them to the current ifStep
-     * Replaces [nullGuard] if previously defined by _else
-     * @param guards
-     * @returns {{do: _ifDo, doAndStop: _ifDoAndStop}}
-     * @private
-     */
-    let _if = (...guards) => {
-        ifStep.guards = createFlatArray(guards);
-        return { 'do':_ifDo, 'doAndStop':_ifDoAndStop }
-    };
-
-
-    _configs[_configs.length] = { event, sequence, isLoggable };
-
-    return {
-        get do() { return _then().do },
-        get if() { return _then().if }
-    }
-
+    return ChoiceBlock(scope);
 };
 
 

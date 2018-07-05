@@ -1,6 +1,6 @@
 import assetManager from './assetManager';
 import globalEmitter from './globalEmitter';
-import applicationMap from "./applicationMap";
+import applicationMap from "./core/applicationMap";
 
 export default ComponentAccess = (target, addMethodsToComponent, callCreatMappingsOnComponent) => {
 
