@@ -1,6 +1,6 @@
 {
   "name": "@idiosync/replan",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "An application framework for react-native",
   "main": "index.js",
   "scripts": {
@@ -17,5 +17,8 @@
     "application"
   ],
   "author": "James Trickey",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.10"
+  }
 }

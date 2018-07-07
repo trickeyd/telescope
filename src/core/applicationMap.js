@@ -3,8 +3,8 @@
 let HashMap         = require('../HashMap');
 let emitter         = require("../globalEmitter");
 let assetManager    = require("../assetManager");
-let ChoiceBlock     = require('./Core').ChoiceBlock;
-let Scope           = require('./Core').Scope;
+let ChoiceBlock     = require('./core').ChoiceBlock;
+let Scope           = require('./core').Scope;
 let _               = require('lodash');
 
 
@@ -13,8 +13,8 @@ let _applicationMap = {};
 let _app = {};
 let _configs = [];
 let _modelMap = HashMap();
-let _doBefore = [];
-let _doAfter = [];
+let _doBefore = null;
+let _doAfter = null;
 let _componentMixins = [];
 let _loggingIsEnabled = false;
 
@@ -77,34 +77,49 @@ Object.defineProperties(_applicationMap, {
 });
 
 _applicationMap.doBefore = (...middleware) => {
-    _doBefore = _doBefore.concat(createFlatArray(middleware));
+    if(_doBefore)
+        throw(new Error('Do before scope has already been set!'));
+    _doBefore = Scope(true);
+    return ChoiceBlock(_doBefore).do.apply(null, middleware);
 };
 
 _applicationMap.doAfter = (...middleware) => {
-    _doAfter = _doAfter.concat(createFlatArray(middleware));
+    if(_doAfter)
+        throw(new Error('Do before scope has already been set!'));
+    _doAfter = Scope(true);
+    return ChoiceBlock(_doAfter).do.apply(null, middleware);
 };
 
 _applicationMap.on = (event, isLoggable) => {
-    isLoggable = isLoggable === false ? false : true;
+    isLoggable = isLoggable !== false;
     
-    let scope = Scope();
+    let scope = Scope(true);
 
     // now add listeners to events from application configs
-    emitter.on(config.event).to( (event, params) => {
-        params = params || {};
-        isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
-        let data = {event, params, locals: {data: {}}};
-        let app = _applicationMap.cloneAppObject();
-        let next = () => console.log('finished');
+    emitter.on(event).to( (event, params) => {
+        let doBefore = _doBefore || Scope(true);
+        let doAfter = _doAfter || Scope(true);
 
-        scope.run(data, app, next);
+        params = params || {};
+
+        isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
+
+        // TODO - move this somewhere
+        let data = {event, params, locals: {data: {}}};
+        data.calls = {lastCall: null};
+        data.debug = DebugObject(data);
+        data.isLoggable = isLoggable;
+        data.localStorage = {};
+
+        let app = _applicationMap.cloneAppObject();
+
+        doBefore.run(data, app,
+            (data, app) => scope.run(data, app,
+                (data, app) => doAfter.run(data, app)));
     });
-            //event, params, config.scope, config.isLoggable && map.loggingIsEnabled
 
     return ChoiceBlock(scope);
 };
-
-
 
 
 _applicationMap.mapView = viewClass => {
@@ -134,35 +149,40 @@ _applicationMap.disableLogging = () => {
     _loggingIsEnabled = false;
 };
 
+let DebugObject = (data) => {
+    let _DebugObject = {};
+
+    _DebugObject.stack =[];
+    _DebugObject.depth = 0;
+
+    _DebugObject.addToStack = (methodName, guardResult) => {
+        let stack = data.debug.stack;
+        stack[stack.length] = {
+            text:methodName,
+            depth:data.debug.depth,
+            guardResult:guardResult || null
+        }
+    };
+
+    _DebugObject.logStack = () => {
+        let stack = data.debug.stack;
+        let logString = '';
+        stack.forEach(stackInfo => {
+            let isGuard = stackInfo.guardResult !== null;
+            let displayedDepth = isGuard ? stackInfo.depth : stackInfo.depth;
+            let str = stackInfo.text;
+            let indent = new Array(displayedDepth * 4 + 1).join(' ');
+
+            if(isGuard) str = 'if(' + str +')   ('+stackInfo.guardResult+')';
+
+            str = indent + str;
+
+            logString += str + '\n';
+        });
+        console.log(logString);
+    };
+
+    return _DebugObject;
+};
+
 module.exports = _applicationMap;
-
-
-
-/**
- * takes embedded arrays and flattens them
- * @param props {Array} object
- */
-function createFlatArray(props) {
-    if(!Array.isArray(props)){
-        return [props]
-    }
-
-    let methods = [];
-    props.forEach(prop => {
-        if (Array.isArray(prop))
-            methods = methods.concat(createFlatArray(prop));
-        else if (typeof prop !== 'function')
-            throw(new Error('Only functions or arrays of functions can be added as ' +
-                'method, but attempted to add ' + JSON.stringify(prop)));
-        else
-            methods[methods.length] = prop;
-    });
-    return methods;
-}
-
-
-/**
- * this is the guard used for else (not elseIf)
- * @returns {boolean}
- */
-let nullGuard = () => { return true; };

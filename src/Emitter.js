@@ -6,7 +6,7 @@
 
 let HashMap = require('./HashMap');
 
-mosule.exports = function Emitter(parentDispatcher) {
+module.exports = function Emitter() {
     let _Emitter = {};
 
     let _mapListenersByType = Object.create(null); // String -> Array(configOb)

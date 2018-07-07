@@ -11,7 +11,7 @@ let Scope = () => {
 
     _Scope.parent = null;
 
-    _Scope.addChild = child => {
+    _Scope.addChild = (child) => {
         _children[_children.length] = child;
         child.parent = _Scope;
     };
@@ -20,10 +20,14 @@ let Scope = () => {
     _Scope.getIsComplete = () => _isCompleted;
 
     _Scope.run = (data, app, next) => {
+        _isCompleted = false;
         let iterator = Iterator(_children);
 
         let loop = () => {
-            if(_isCompleted || !iterator.hasNext()) return next();
+            if(_isCompleted || !iterator.hasNext())
+                if(next) return next(data, app);
+                else     return;
+
             let child = iterator.next();
             child.run(data, app, loop);
         };
@@ -37,7 +41,7 @@ let Scope = () => {
 
 let DoBlock = (parentScope) => (...methods) => {
     let _DoBlock = {};
-    let runner = MethodRunner.apply(null,methods);
+    let runner = MethodRunner(parentScope).apply(null, methods);
 
     _DoBlock.run = runner.run;
 
@@ -54,22 +58,36 @@ let IfBlock = (parentScope) => {
     return Conditional(_IfBlock);
 };
 
+let ChoiceBlock = (scope) => {
+    return {
+        get do() { return DoBlock(scope) },
+        get if() { return IfBlock(scope) }
+    }
+};
 
 let Conditional = (ifScope) => (...guards) => (...methods) => {
     let _Conditional = {};
-    let _methodRunner = MethodRunner.apply(null, methods);
+    let _methodRunner = MethodRunner(ifScope).apply(null, methods);
+
+    ifScope.addChild(_Conditional);
 
     _Conditional.run = (data, app, next) => {
-        for(let i = 0, l = guards.length; i < l; i++) {
-            if(!guards[i]()){
+        for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
+            guard = guards[i];
+            isTrue = guard(data, app);
+            data.debug.addToStack(guards[i].name, isTrue);
+            if(!isTrue) {
                 return next();
             }
         }
-        ifScope.completeScope();
-        _methodRunner.run(data, app, next);
-    };
 
-    ifScope.addChild(_Conditional);
+        data.debug.depth++;
+        ifScope.completeScope();
+        _methodRunner.run(data, app, ()=>{
+            data.debug.depth--;
+            next();
+        });
+    };
 
     return {
         get else()  { return Conditional(ifScope)(()=>true) },
@@ -79,50 +97,59 @@ let Conditional = (ifScope) => (...guards) => (...methods) => {
     }
 };
 
-let ChoiceBlock = (scope) => {
-    return {
-        get do() { return DoBlock(scope) },
-        get if() { return IfBlock(scope) }
-    }
-};
-
-let MethodRunner = (data, app, ...methods) => {
-    let run = (data, app, next) => {
+let MethodRunner = scope => (...methods) => {
+    let _MethodRunner = {};
+    _MethodRunner.run = (data, app, next) => {
         let iterator = Iterator(methods);
 
         let loop = async () => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
+            data.isLoggable && console.log(method.name);
 
             try {
+
                 switch (method.length) {
                     case 1:
-                        let scope = Scope();
-                        method(ChoiceBlock(scope));
-                        scope.run(loop);
+                        // remove scope creation methods and add hierarchy
+                        // to the structure to increase speed on later runs
+                        iterator.removeLastIndex();
+                        let newScope = Scope();
+                        scope.addChild(newScope);
+                        method(ChoiceBlock(newScope));
+                        data.debug.depth++;
+                        newScope.run(data, app, () => {
+                            data.debug.depth--;
+                            loop();
+                        });
+
                         break;
                     case 2:
                         await method(data, app);
                         loop();
                         break;
                     case 3:
+                        data.debug.addToStack(method.name);
                         method(data, app, loop);
                         break;
-                    case 4:
-                        // (err, data, app, next) need this?
-                        break;
+                    default:
+                        throw(new Error('Reflow middleware must accept 1-3 arguments!'));
                 }
             } catch (err){
-                console.log('Error!');
+                console.log('ERROR!');
+                console.log('There has been an error @ ' + method.name + '!');
+                console.log('reflow stack:');
+                data.debug.logStack();
+                console.log('\nJS stack:');
+                console.log(err);
             }
         };
         loop();
     };
 
-    return {
-        run
-    }
+    return _MethodRunner;
 };
+
 
 module.exports = {
     ChoiceBlock,

@@ -1,12 +1,12 @@
 "use strict";
 
 module.exports = function HashMap () {
-    let HashMap = {};
+    let _HashMap = {};
     let _keyArray = [];
     let _propertyArray = [];
 
     // added for debugging
-    Object.defineProperty(HashMap, "toString", {
+    Object.defineProperty(_HashMap, "toString", {
         get: function () {
             let string = "";
             for (let i = _keyArray.length - 1; i>=0; i--) {
@@ -16,13 +16,13 @@ module.exports = function HashMap () {
         }
     });
 
-    Object.defineProperty(HashMap, "keys", {
+    Object.defineProperty(_HashMap, "keys", {
         get: function () {
             return _keyArray.concat();
         }
     });
 
-    HashMap.set = (key, property) => {
+    _HashMap.set = (key, property) => {
         for (let i = 0, l = _keyArray.length; i < l; i++) {
             if(_keyArray[i] === key){
                 _propertyArray[i] = property;
@@ -33,11 +33,11 @@ module.exports = function HashMap () {
         _propertyArray.push(property);
     };
 
-    HashMap.get = key => {
+    _HashMap.get = key => {
         return returnObject(_keyArray, key, _propertyArray);
     };
 
-    HashMap.delete = key => {
+    _HashMap.delete = key => {
         for (let i = 0, l = _keyArray.length; i < l; i++) {
             if(_keyArray[i] === key){
                 _keyArray.splice(i, 1);
@@ -47,7 +47,7 @@ module.exports = function HashMap () {
         }
     };
 
-    HashMap.retrieveKey = key => {
+    _HashMap.retrieveKey = key => {
         return returnObject(_propertyArray, key, _keyArray);
     };
 
@@ -60,5 +60,5 @@ module.exports = function HashMap () {
         return null;
     };
 
-    return HashMap;
+    return _HashMap;
 };

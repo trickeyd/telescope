@@ -3,7 +3,6 @@ let emitter             = require('./src/globalEmitter');
 let ComponentAccess     = require('./src/ComponentAccess');
 let assetManager        = require('./src/assetManager');
 let map                 = require('./src/core/applicationMap');
-let runScope            = require('./src/core/Core').runScope;
 let lastCallWasSuccess  = require('./src/guards/lastCallWasSuccess');
 let fetchJson           = require('./src/middleware/fetchJson');
 let dispatchEvent       = require('./src/middleware/dispatchEvent');

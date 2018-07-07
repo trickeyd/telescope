@@ -1,14 +1,21 @@
 'use strict';
 
-let ChoiceBlock = require('./core/Core').ChoiceBlock;
-let Scope = require('./core/Core').Scope;
+let ChoiceBlock = require('./core/core').ChoiceBlock;
+let Scope = require('./core/core').Scope;
+let map = require('./core/applicationMap');
+let ev = require('./globalEmitter');
 
-let mid = log => (data, app) => console.log(log);
+let mid = log => {
+    let hello = (data, app) => console.log(log);
+    return hello;
+};
 
 let globalScope = Scope();
 let testChoice = ChoiceBlock(globalScope);
 
-testChoice.do(
+
+
+map.on('poo').do(
     mid('m1'),
     mid('m2')
 ).if(()=>false)(
@@ -53,4 +60,6 @@ console.log('.');
 console.log('.');
 console.log('.');
 
-globalScope.run(()=>console.log('finished'));
+ev.emit('poo');
+
+setTimeout(()=>ev.emit('poo'), 1000);
