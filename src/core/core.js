@@ -75,6 +75,12 @@ let Conditional = (ifScope) => (...guards) => (...methods) => {
         for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
             guard = guards[i];
             isTrue = guard(data, app);
+
+            if(data.isLoggable)
+                !guard.name
+                    ? console.log('unnamed guard method == ' + isTrue )
+                    : console.log(guard.name + '  ==  ' + isTrue );
+
             data.debug.addToStack(guards[i].name, isTrue);
             if(!isTrue) {
                 return next();
@@ -105,7 +111,13 @@ let MethodRunner = scope => (...methods) => {
         let loop = async () => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
-            data.isLoggable && console.log(method.name);
+
+            if(data.isLoggable)
+                !method.name
+                    ? console.log('unnamed method')
+                    : console.log(method.name);
+
+            console.log(method);
 
             try {
 
