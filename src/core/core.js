@@ -117,8 +117,6 @@ let MethodRunner = scope => (...methods) => {
                     ? console.log('unnamed method')
                     : console.log(method.name);
 
-            console.log(method);
-
             try {
 
                 switch (method.length) {
