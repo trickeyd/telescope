@@ -88,8 +88,9 @@ let Conditional = (ifScope) => (...guards) => (...methods) => {
         }
 
         data.debug.depth++;
-        ifScope.completeScope();
+
         _methodRunner.run(data, app, ()=>{
+            ifScope.completeScope();
             data.debug.depth--;
             next();
         });
@@ -105,6 +106,7 @@ let Conditional = (ifScope) => (...guards) => (...methods) => {
 
 let MethodRunner = scope => (...methods) => {
     let _MethodRunner = {};
+
     _MethodRunner.run = (data, app, next) => {
         let iterator = Iterator(methods);
 
@@ -118,7 +120,6 @@ let MethodRunner = scope => (...methods) => {
                     : console.log(method.name);
 
             try {
-
                 switch (method.length) {
                     case 1:
                         // remove scope creation methods and add hierarchy
@@ -128,20 +129,19 @@ let MethodRunner = scope => (...methods) => {
                         scope.addChild(newScope);
                         method(ChoiceBlock(newScope));
                         data.debug.depth++;
-                        newScope.run(data, app, () => {
+                        return newScope.run(data, app, () => {
                             data.debug.depth--;
                             loop();
                         });
 
-                        break;
                     case 2:
                         await method(data, app);
-                        loop();
-                        break;
+                        return loop();
+
                     case 3:
                         data.debug.addToStack(method.name);
-                        method(data, app, loop);
-                        break;
+                        return method(data, app, loop);
+
                     default:
                         throw(new Error('Reflow middleware must accept 1-3 arguments!'));
                 }
@@ -150,7 +150,7 @@ let MethodRunner = scope => (...methods) => {
                 console.log('There has been an error @ ' + method.name + '!');
                 console.log('reflow stack:');
                 data.debug.logStack();
-                console.log('\nJS stack:');
+                console.log('\n JS stack:');
                 console.log(err);
             }
         };

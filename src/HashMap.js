@@ -5,22 +5,19 @@ module.exports = function HashMap () {
     let _keyArray = [];
     let _propertyArray = [];
 
-    // added for debugging
-    Object.defineProperty(_HashMap, "toString", {
-        get: function () {
-            let string = "";
-            for (let i = _keyArray.length - 1; i>=0; i--) {
-                string += (String(_keyArray[i]) + "->" + String(_propertyArray[i]));
-            }
-            return string;
-        }
-    });
-
     Object.defineProperty(_HashMap, "keys", {
         get: function () {
             return _keyArray.concat();
         }
     });
+
+    _HashMap.toString = () => {
+        let string = "";
+        for (let i = _keyArray.length - 1; i>=0; i--) {
+            string += (String(_keyArray[i]) + "->" + String(_propertyArray[i]));
+        }
+        return string;
+    };
 
     _HashMap.set = (key, property) => {
         for (let i = 0, l = _keyArray.length; i < l; i++) {

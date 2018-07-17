@@ -1,8 +1,9 @@
 let assetManager = require('./assetManager');
 let globalEmitter  = require('./globalEmitter');
 let applicationMap  = require("./core/applicationMap");
+let _ = require('lodash');
 
-module.exports = ComponentAccess = (target, addMethodsToComponent, callCreatMappingsOnComponent) => {
+let ComponentAccess = (target, addMethodsToComponent = true, callCreateMappingsOnComponent = true) => {
 
     let getViewModel = target => {
         let viewModelClass = applicationMap.getViewModelByView(target.constructor);
@@ -10,8 +11,9 @@ module.exports = ComponentAccess = (target, addMethodsToComponent, callCreatMapp
     };
 
     let _ComponentAccess = {};
-    let _addMethods = addMethodsToComponent === undefined ? true : addMethodsToComponent;
-    let _callCreatMappings = callCreatMappingsOnComponent === undefined ? true : callCreatMappingsOnComponent;
+
+    let _addMethods = addMethodsToComponent;
+    let _callCreateMappings = callCreateMappingsOnComponent;
     let _target = target;
     let _targetName = _target && _target.constructor ? _target.constructor.name  : '[Name not supplied]';
     let _viewModel = getViewModel(target);
@@ -58,24 +60,36 @@ module.exports = ComponentAccess = (target, addMethodsToComponent, callCreatMapp
     });
 
     if(_addMethods) {
-        _target.emit = _ComponentAccess.emit;
-        _target.getImageByName = _ComponentAccess.getImageByName;
-        _target.getImageByKey = _ComponentAccess.getImageByKey;
+
+        // add getter for view model to target
         Object.defineProperties(_target, {
             viewModel:{get: () => _viewModel }
         });
 
+        // add new component methods to target
+        _target.emit = _ComponentAccess.emit;
+        _target.getImageByName = _ComponentAccess.getImageByName;
+        _target.getImageByKey = _ComponentAccess.getImageByKey;
+
+        // decorate component did mount
         _target.componentDidMount = (fn => {
             return function() {
-                if (_callCreatMappings && typeof _target.createMappings === 'function') {
+                let proxy = applicationMap.getComponentProxy(_target.constructor);
+                _.isNil(proxy) || proxy._INTERNAL_addInstance(_target);
+
+                if (_callCreateMappings && _.isFunction(_target.createMappings)) {
                     _ComponentAccess.createMappings(_target.createMappings.bind(_target));
                 }
                 fn && fn.call(_target);
             }
         })(_target.componentDidMount);
 
+        // decorate component will unmount
         _target.componentWillUnmount = (fn => {
-            return function(){
+            return function() {
+                let proxy = applicationMap.getComponentProxy(_target.constructor);
+                _.isNil(proxy) || proxy._INTERNAL_removeInstance(_target);
+
                 _hasMappings && _ComponentAccess.removeMappings();
                 fn && fn.call(_target);
             }
@@ -87,4 +101,6 @@ module.exports = ComponentAccess = (target, addMethodsToComponent, callCreatMapp
     });
 
     return _ComponentAccess;
-}
+};
+
+module.exports = ComponentAccess;
