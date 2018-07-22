@@ -58,6 +58,7 @@ let IfBlock = (parentScope) => {
     return Conditional(_IfBlock);
 };
 
+
 let ChoiceBlock = (scope) => {
     return {
         get do() { return DoBlock(scope) },
@@ -65,44 +66,57 @@ let ChoiceBlock = (scope) => {
     }
 };
 
-let Conditional = (ifScope) => (...guards) => (...methods) => {
-    let _Conditional = {};
-    let _methodRunner = MethodRunner(ifScope).apply(null, methods);
+let Conditional = (ifScope) => {
+    let _isInverted = false;
 
-    ifScope.addChild(_Conditional);
+    let _internals = (...guards) => (...methods) => {
+        let _Conditional = {};
+        let _methodRunner = MethodRunner(ifScope).apply(null, methods);
 
-    _Conditional.run = (data, app, next) => {
-        for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
-            guard = guards[i];
-            isTrue = guard(data, app);
+        ifScope.addChild(_Conditional);
 
-            if(data.isLoggable)
-                !guard.name
-                    ? console.log('unnamed guard method == ' + isTrue )
-                    : console.log(guard.name + '  ==  ' + isTrue );
+        _Conditional.run = (data, app, next) => {
+            for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
+                guard = guards[i];
+                isTrue = guard(data, app);
+                _isInverted && (isTrue = !isTrue)
 
-            data.debug.addToStack(guards[i].name, isTrue);
-            if(!isTrue) {
-                return next();
+                if(data.isLoggable)
+                    !guard.name
+                        ? console.log('unnamed guard method == ' + isTrue )
+                        : console.log(guard.name + '  ==  ' + isTrue );
+
+                data.debug.addToStack(guards[i].name, isTrue);
+                if(!isTrue) {
+                    return next();
+                }
             }
+
+            data.debug.depth++;
+
+            _methodRunner.run(data, app, ()=>{
+                ifScope.completeScope();
+                data.debug.depth--;
+                next();
+            });
+        };
+
+        return {
+            get else()  { return Conditional(ifScope)(()=>true) },
+            get elseIf(){ return Conditional(ifScope) },
+            get do()    { return DoBlock(ifScope.parent) },
+            get if()    { return IfBlock(ifScope.parent) }
         }
-
-        data.debug.depth++;
-
-        _methodRunner.run(data, app, ()=>{
-            ifScope.completeScope();
-            data.debug.depth--;
-            next();
-        });
-    };
-
-    return {
-        get else()  { return Conditional(ifScope)(()=>true) },
-        get elseIf(){ return Conditional(ifScope) },
-        get do()    { return DoBlock(ifScope.parent) },
-        get if()    { return IfBlock(ifScope.parent) }
     }
+
+    _internals.not = (...guards) => {
+        _isInverted = true;
+        return _internals.apply(null, guards);
+    }
+
+    return _internals;
 };
+
 
 let MethodRunner = scope => (...methods) => {
     let _MethodRunner = {};
