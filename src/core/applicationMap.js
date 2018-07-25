@@ -14,7 +14,11 @@ let _app                = {};
 let _configs            = [];
 let _modelMap           = HashMap();
 
-let _componentApis      = HashMap();
+let _implementations    = HashMap();
+let _proxyInstances     = HashMap();
+let _proxyMap           = Object.create(null);
+let _keyMap             = Object.create(null);
+
 let _doBefore           = null;
 let _doAfter            = null;
 let _componentMixins    = [];
@@ -56,13 +60,119 @@ _applicationMap.cloneAppObject = () => {
     return Object.create(_app);
 };
 
+let Proxy = (methodNames, instances) => {
 
-_applicationMap.registerComponentApi = componentClass => {
-    if(_.isNil(componentClass)) throw(new Error('componentClass must be defined!'));
-    _componentApis.set(componentClass, Proxy(getInstanceMethodNames(componentClass.prototype)));
+    let _Proxy = Object.create(null);
+
+    // warning - use at your own peral!
+    Object.defineProperty(_Proxy, 'instances', {
+        value: instances,
+        enumerable: true,
+        writable: false
+    });
+
+    methodNames.forEach(name => Object.defineProperty(_Proxy, name, {
+        value:(...args) => {
+            let instance;
+            for(let i = 0, l = instances.length; i < l; i++) {
+                instance = instances[i];
+                instance[name].apply(instance, args);
+            }
+        },
+        writable: false,
+        enumerable : true,
+        configurable :false
+    }));
+
+    return _Proxy;
 };
 
-_applicationMap.getComponentProxy = componentClass => _componentApis.get(componentClass);
+let Interface = (methodNames, components) => {
+    if(!_.isArray(methodNames))
+        throw(new Error('The first argument of Interface must be an array of method names!'))
+
+    if(!_.isArray(components))
+        throw(new Error('The second argument of Interface must be an array of view components that implement it!'))
+
+    return { methodNames, components }
+}
+
+
+_applicationMap.registerInterfaces = callback => {
+    let configs = callback(Interface);
+
+    Object.keys(configs).forEach(configKey => {
+
+        if(_keyMap[configKey])
+            throw(new Error('Interface for key ', configKey + ' has already been registerd!'));
+
+        Object.defineProperty(_keyMap, configKey, {
+            value:configKey,
+            enumerable:true,
+            writable:false
+        });
+
+        let _interface = configs[configKey];
+
+        let instances = [];
+        let proxy = Proxy(_interface.methodNames, instances);
+
+        _proxyInstances.set(proxy, instances);
+
+        // proxy mapped to the key so user can access from frontware
+        _proxyMap[configKey] = proxy;
+
+        // map component to its (multiple) proxies
+        _interface.components.forEach(component => {
+            let proxies = _implementations.get(component);
+            if(!proxies) _implementations.set(component, proxies = []);
+            proxies.push(proxy);
+        });
+    });
+}
+
+_applicationMap.registerInstance = instance => {
+    let proxyInstances;
+    let proxies = _implementations.get(instance.constructor);
+
+    if(_.isNil(proxies)) return;
+
+    for(let i = proxies.length - 1; i >= 0; i--){
+        proxyInstances = _proxyInstances.get(proxies[i]);
+        proxyInstances[proxyInstances.length] = instance;
+    }
+}
+_applicationMap.unregisterInstance = instance => {
+    let proxyInstances, i, ii;
+    let proxies = _implementations.get(instance.constructor);
+
+    if(_.isNil(proxies)) return;
+
+    for(i = proxies.length - 1; i >= 0; i--){
+        proxyInstances = _proxyInstances.get(proxies[i]);
+        for(ii = proxyInstances.length - 1; ii >= 0; i--){
+            // For speed this does not maintain order. Problem?
+            if(proxyInstances[ii] === instance){
+                proxyInstances[ii] = proxyInstances[proxyInstances.length - 1];
+                proxyInstances.pop();
+                return;
+            }
+        }
+    }
+};
+
+_applicationMap.getProxyByInterfaceKey = callback => {
+    let key = callback(_keyMap);
+
+    if(!_.isString(key)) throw(new Error('Key must be supplied, not ' + typeof key));
+
+    let proxy = _proxyMap[key];
+
+    if(!proxy) throw(new Error('No interface fegistered to key ' + key + '!'));
+
+    return proxy;
+}
+
 
 Object.defineProperties(_app, {
     model: {  value: _model, writable: false,  enumerable: true },
@@ -71,7 +181,7 @@ Object.defineProperties(_app, {
     emitter: { value: emitter, writable: false, enumerable: true },
     assetManager: { writable: false, enumerable: true, value: assetManager },
     map: { value: this, writable: false, enumerable: true },
-    getComponentProxy: { writable: false, enumerable: true, value: _applicationMap.getComponentProxy }
+    getProxyByInterfaceKey: { writable: false, enumerable: true, value: _applicationMap.getProxyByInterfaceKey }
 });
 
 // middleware configs
@@ -203,71 +313,6 @@ let DebugObject = (data) => {
     };
 
     return _DebugObject;
-};
-
-
-
-
-function hasMethod (obj, name) {
-    const desc = Object.getOwnPropertyDescriptor (obj, name);
-    return !!desc && typeof desc.value === 'function';
-}
-
-function getInstanceMethodNames (obj, stop) {
-    const BLACK_LIST = [
-        'constructor',
-        '__defineGetter__',
-        '__defineSetter__',
-        'hasOwnProperty',
-        '__lookupGetter__',
-        '__lookupSetter__',
-        'isPrototypeOf',
-        'propertyIsEnumerable',
-        'toString',
-        'valueOf',
-        'toLocaleString',
-        'apply',
-        'bind',
-        'call'
-    ];
-    let array = [];
-    let proto = Object.getPrototypeOf(obj);
-    while (proto && proto !== stop) {
-        Object.getOwnPropertyNames(proto).forEach (name => {
-                if (BLACK_LIST.indexOf(name) === -1) {
-                    if (hasMethod(proto, name)) {
-                        array.push(name);
-                    }
-                }
-            });
-        proto = Object.getPrototypeOf(proto);
-    }
-    return array;
-}
-
-let Proxy = methodNames => {
-
-    let _Proxy = Object.create(null);
-
-    let _instances = [];
-
-    methodNames.forEach(name => Object.defineProperty(_Proxy, name, {
-        value:(...args) => {
-            _instances.forEach(inst => inst[name].apply(inst, args));
-        }
-    }));
-
-    _Proxy._INTERNAL_addInstance = instance => _instances[_instances.length] = instance;
-    _Proxy._INTERNAL_removeInstance = instance => _instances.some(inst => {
-        for(let i = _instances.length - 1; i >= 0; i--){
-            if(instance === inst){
-                _instances[i] = _instances[_instances.length-1];
-                _instances.pop();
-                return;
-            }
-        }
-    });
-    return _Proxy;
 };
 
 module.exports = _applicationMap;

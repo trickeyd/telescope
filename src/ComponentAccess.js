@@ -74,8 +74,7 @@ let ComponentAccess = (target, addMethodsToComponent = true, callCreateMappingsO
         // decorate component did mount
         _target.componentDidMount = (fn => {
             return function() {
-                let proxy = applicationMap.getComponentProxy(_target.constructor);
-                _.isNil(proxy) || proxy._INTERNAL_addInstance(_target);
+                applicationMap.registerInstance(_target);
 
                 if (_callCreateMappings && _.isFunction(_target.createMappings)) {
                     _ComponentAccess.createMappings(_target.createMappings.bind(_target));
@@ -87,8 +86,7 @@ let ComponentAccess = (target, addMethodsToComponent = true, callCreateMappingsO
         // decorate component will unmount
         _target.componentWillUnmount = (fn => {
             return function() {
-                let proxy = applicationMap.getComponentProxy(_target.constructor);
-                _.isNil(proxy) || proxy._INTERNAL_removeInstance(_target);
+                applicationMap.unregisterInstance(_target);
 
                 _hasMappings && _ComponentAccess.removeMappings();
                 fn && fn.call(_target);
