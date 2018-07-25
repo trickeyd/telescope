@@ -208,13 +208,12 @@ _applicationMap.doAfter = (...middleware) => {
     return ChoiceBlock(_doAfter).do.apply(null, middleware);
 };
 
-_applicationMap.on = (event, isLoggable) => {
-    isLoggable = isLoggable !== false;
-    
+
+let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
     let scope = Scope(true);
 
     // now add listeners to events from application configs
-    emitter.on(event).to( (event, params) => {
+    events.forEach(event => emitter.on(event).to( (event, params) => {
         let doBefore = _doBefore || Scope(true);
         let doAfter = _doAfter || Scope(true);
 
@@ -234,9 +233,21 @@ _applicationMap.on = (event, isLoggable) => {
         doBefore.run(data, app,
             (data, app) => scope.run(data, app,
                 (data, app) => doAfter.run(data, app)));
-    });
+    }));
 
     return ChoiceBlock(scope);
+}
+
+_applicationMap.withParams = (isLoggable=true, isOnce=false) => {
+    return {
+        on : (...events) => {
+            return mapEventAndReturnChoice(events, isLoggable, isOnce);
+        }
+    }
+};
+
+_applicationMap.on = (...events) => {
+    return mapEventAndReturnChoice(events);
 };
 
 
