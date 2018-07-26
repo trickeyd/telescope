@@ -8,21 +8,21 @@ let Scope           = require('./core').Scope;
 let _               = require('lodash');
 
 
-let _applicationMap = {};
+let _applicationMap         = {};
 
-let _app                = {};
-let _configs            = [];
-let _modelMap           = HashMap();
+let _app                    = {};
+let _configs                = [];
 
-let _implementations    = HashMap();
-let _proxyInstances     = HashMap();
-let _proxyMap           = Object.create(null);
-let _keyMap             = Object.create(null);
+let _componentToMethods   = HashMap();
+let _componentToProxy       = HashMap();
+let _proxyInstances         = HashMap();
+let _proxyMap               = Object.create(null);
+let _keyMap                 = Object.create(null);
 
-let _doBefore           = null;
-let _doAfter            = null;
-let _componentMixins    = [];
-let _loggingIsEnabled   = false;
+let _doBefore               = null;
+let _doAfter                = null;
+let _componentMixins        = [];
+let _loggingIsEnabled       = false;
 
 let _model = {
     clear: () => Object.keys(_model).forEach( key => _.isFunction(_model[key]['clear']) && _model[key].clear())
@@ -87,14 +87,17 @@ let Proxy = (methodNames, instances) => {
     return _Proxy;
 };
 
-let Interface = (methodNames, components) => {
+let Interface = (methodNames, components, middleware=null) => {
     if(!_.isArray(methodNames))
         throw(new Error('The first argument of Interface must be an array of method names!'))
 
     if(!_.isArray(components))
         throw(new Error('The second argument of Interface must be an array of view components that implement it!'))
 
-    return { methodNames, components }
+    if(!_.isNil(middleware) && !_.isArray(components))
+        throw(new Error('The third argument of Interface must be an array of middleware to be run when an instance is mounted!'))
+
+    return { methodNames, components, middleware }
 }
 
 
@@ -124,16 +127,23 @@ _applicationMap.registerInterfaces = callback => {
 
         // map component to its (multiple) proxies
         _interface.components.forEach(component => {
-            let proxies = _implementations.get(component);
-            if(!proxies) _implementations.set(component, proxies = []);
+            let proxies = _componentToProxy.get(component);
+            if(!proxies) _componentToProxy.set(component, proxies = []);
             proxies.push(proxy);
+
+            if(!_.isNil(_interface.middleware)) {
+                let scope = Scope();
+                ChoiceBlock(scope).do.apply(null, _interface.middleware)
+                let methods = _componentToMethods.get(component);
+                if (!methods) _componentToMethods.set(component, scope);
+            }
         });
     });
 }
 
 _applicationMap.registerInstance = instance => {
     let proxyInstances;
-    let proxies = _implementations.get(instance.constructor);
+    let proxies = _componentToProxy.get(instance.constructor);
 
     if(_.isNil(proxies)) return;
 
@@ -141,10 +151,18 @@ _applicationMap.registerInstance = instance => {
         proxyInstances = _proxyInstances.get(proxies[i]);
         proxyInstances[proxyInstances.length] = instance;
     }
+
+    let scope = _componentToMethods.get(instance.constructor);
+    if(scope){
+        let data = DataObject({instance}, undefined, true);
+        let app = _applicationMap.cloneAppObject();
+        data.instance = instance;
+        scope.run(data, app);
+    }
 }
 _applicationMap.unregisterInstance = instance => {
     let proxyInstances, i, ii;
-    let proxies = _implementations.get(instance.constructor);
+    let proxies = _componentToProxy.get(instance.constructor);
 
     if(_.isNil(proxies)) return;
 
@@ -210,24 +228,18 @@ _applicationMap.doAfter = (...middleware) => {
 
 
 let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
-    let scope = Scope(true);
+    let scope = Scope();
 
     // now add listeners to events from application configs
     events.forEach(event => emitter.on(event).to( (event, params) => {
-        let doBefore = _doBefore || Scope(true);
-        let doAfter = _doAfter || Scope(true);
+        let doBefore = _doBefore || Scope();
+        let doAfter = _doAfter || Scope();
 
         params = params || {};
 
         isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
 
-        // TODO - move this somewhere
-        let data = {event, params, locals: {data: {}}};
-        data.calls = {lastCall: null};
-        data.debug = DebugObject(data);
-        data.isLoggable = isLoggable;
-        data.localStorage = {};
-
+        let data = DataObject(params, event, isLoggable);
         let app = _applicationMap.cloneAppObject();
 
         doBefore.run(data, app,
@@ -251,37 +263,6 @@ _applicationMap.on = (...events) => {
 };
 
 
-_applicationMap.mapView = viewClass => {
-    let _chain = {};
-
-    // check if is a component
-
-    _chain.toViewModel = viewModelClass => {
-        if (_modelMap.get(viewClass))
-            throw(new Error('Model ' + modelClass.name +' already mapped to '+ viewClass.name +'!'));
-
-        _modelMap.set(viewClass, viewModelClass);
-        return _chain;
-    };
-
-/*    _chain.toFrontware = (frontware) => {
-        if(!_.isFunction(frontware))
-            throw(new Error('frontware and components must be defined!'));
-        if(!frontware.length !== 3)
-            throw(new Error('frontware functions must accept 3 arguments: (data, app, componentProxy)!'));
-        if(!_.isNil(_app.frontware.get(viewClass)))
-            throw(new Error('Component class: ' + viewClass.name + ' already registered to frontware!'));
-
-        _frontwareMap.set(viewClass, frontware);
-    };*/
-
-    return _chain;
-};
-
-_applicationMap.getViewModelByView = viewClass => {
-    return _modelMap.get(viewClass);
-};
-
 _applicationMap.enableLogging = () => {
     _loggingIsEnabled = true;
 };
@@ -289,6 +270,16 @@ _applicationMap.enableLogging = () => {
 _applicationMap.disableLogging = () => {
     _loggingIsEnabled = false;
 };
+
+let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
+    let data = {event, params, locals: {data: {}}};
+    data.calls = {lastCall: null};
+    data.debug = DebugObject(data);
+    data.isLoggable = isLoggable;
+    data.localStorage = {};
+
+    return data;
+}
 
 let DebugObject = (data) => {
     let _DebugObject = {};

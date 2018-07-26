@@ -5,18 +5,12 @@ let _ = require('lodash');
 
 let ComponentAccess = (target, addMethodsToComponent = true, callCreateMappingsOnComponent = true) => {
 
-    let getViewModel = target => {
-        let viewModelClass = applicationMap.getViewModelByView(target.constructor);
-        return viewModelClass ? new viewModelClass(applicationMap.cloneAppObject()) : null;
-    };
-
     let _ComponentAccess = {};
 
     let _addMethods = addMethodsToComponent;
     let _callCreateMappings = callCreateMappingsOnComponent;
     let _target = target;
     let _targetName = _target && _target.constructor ? _target.constructor.name  : '[Name not supplied]';
-    let _viewModel = getViewModel(target);
 
     let _hasMappings = false;
 
@@ -55,17 +49,8 @@ let ComponentAccess = (target, addMethodsToComponent = true, callCreateMappingsO
         return assetManager.getImageByKey(constSelectMethod);
     };
 
-    Object.defineProperties(_ComponentAccess, {
-        viewModel:{get: () => _viewModel }
-    });
 
     if(_addMethods) {
-
-        // add getter for view model to target
-        Object.defineProperties(_target, {
-            viewModel:{get: () => _viewModel }
-        });
-
         // add new component methods to target
         _target.emit = _ComponentAccess.emit;
         _target.getImageByName = _ComponentAccess.getImageByName;
