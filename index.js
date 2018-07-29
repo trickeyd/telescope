@@ -1,6 +1,5 @@
 'use strict';
 let emitter             = require('./src/globalEmitter');
-let ComponentAccess     = require('./src/ComponentAccess');
 let assetManager        = require('./src/assetManager');
 let map                 = require('./src/core/applicationMap');
 let lastCallWasSuccess  = require('./src/guards/lastCallWasSuccess');
@@ -26,4 +25,4 @@ let middleware = {
     dispatchEvent
 };
 
-module.exports = { start, assetManager, emitter, map, ComponentAccess, guards, middleware };
+module.exports = { start, assetManager, emitter, map, guards, middleware };

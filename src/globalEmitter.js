@@ -1,4 +1,3 @@
 'use strict';
-let Emitter = require('./Emitter');
-
-module.exports = Emitter();
+let globalEmitter = require('./Emitter')();
+module.exports = globalEmitter;
