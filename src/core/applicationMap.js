@@ -3,6 +3,7 @@
 let HashMap         = require('../HashMap');
 let emitter         = require("../globalEmitter");
 let assetManager    = require("../assetManager");
+let globalEmitter   = require('../globalEmitter');
 let ChoiceBlock     = require('./core').ChoiceBlock;
 let Scope           = require('./core').Scope;
 let _               = require('lodash');
@@ -10,14 +11,9 @@ let _               = require('lodash');
 
 let _applicationMap         = {};
 
-let _app                    = {};
 let _configs                = [];
 
-let _componentToMethods   = HashMap();
-let _componentToProxy       = HashMap();
-let _proxyInstances         = HashMap();
-let _proxyMap               = Object.create(null);
-let _keyMap                 = Object.create(null);
+let _proxyMap                 = HashMap();
 
 let _doBefore               = null;
 let _doAfter                = null;
@@ -55,152 +51,6 @@ _applicationMap.registerEventsByObject = eventsObject => {
 _applicationMap.addComponentMixin = mixin => {
     _componentMixins[_componentMixins.length] = mixin;
 };
-
-_applicationMap.cloneAppObject = () => {
-    return Object.create(_app);
-};
-
-let Proxy = (methodNames, instances) => {
-
-    let _Proxy = Object.create(null);
-
-    // warning - use at your own peral!
-    Object.defineProperty(_Proxy, 'instances', {
-        value: instances,
-        enumerable: true,
-        writable: false
-    });
-
-    methodNames.forEach(name => Object.defineProperty(_Proxy, name, {
-        value:(...args) => {
-            let instance;
-            for(let i = 0, l = instances.length; i < l; i++) {
-                instance = instances[i];
-                instance[name].apply(instance, args);
-            }
-        },
-        writable: false,
-        enumerable : true,
-        configurable :false
-    }));
-
-    return _Proxy;
-};
-
-let Interface = (methodNames, components, middleware=null) => {
-    if(!_.isArray(methodNames))
-        throw(new Error('The first argument of Interface must be an array of method names!'))
-
-    if(!_.isArray(components))
-        throw(new Error('The second argument of Interface must be an array of view components that implement it!'))
-
-    if(!_.isNil(middleware) && !_.isArray(components))
-        throw(new Error('The third argument of Interface must be an array of middleware to be run when an instance is mounted!'))
-
-    return { methodNames, components, middleware }
-}
-
-
-_applicationMap.registerInterfaces = callback => {
-    let configs = callback(Interface);
-
-    Object.keys(configs).forEach(configKey => {
-
-        if(_keyMap[configKey])
-            throw(new Error('Interface for key ', configKey + ' has already been registerd!'));
-
-        Object.defineProperty(_keyMap, configKey, {
-            value:configKey,
-            enumerable:true,
-            writable:false
-        });
-
-        let _interface = configs[configKey];
-
-        let instances = [];
-        let proxy = Proxy(_interface.methodNames, instances);
-
-        _proxyInstances.set(proxy, instances);
-
-        // proxy mapped to the key so user can access from frontware
-        _proxyMap[configKey] = proxy;
-
-        // map component to its (multiple) proxies
-        _interface.components.forEach(component => {
-            let proxies = _componentToProxy.get(component);
-            if(!proxies) _componentToProxy.set(component, proxies = []);
-            proxies.push(proxy);
-
-            if(!_.isNil(_interface.middleware)) {
-                let scope = Scope();
-                ChoiceBlock(scope).do.apply(null, _interface.middleware)
-                let methods = _componentToMethods.get(component);
-                if (!methods) _componentToMethods.set(component, scope);
-            }
-        });
-    });
-}
-
-_applicationMap.registerInstance = instance => {
-    let proxyInstances;
-    let proxies = _componentToProxy.get(instance.constructor);
-
-    if(_.isNil(proxies)) return;
-
-    for(let i = proxies.length - 1; i >= 0; i--){
-        proxyInstances = _proxyInstances.get(proxies[i]);
-        proxyInstances[proxyInstances.length] = instance;
-    }
-
-    let scope = _componentToMethods.get(instance.constructor);
-    if(scope){
-        let data = DataObject({instance}, undefined, true);
-        let app = _applicationMap.cloneAppObject();
-        data.instance = instance;
-        scope.run(data, app);
-    }
-}
-_applicationMap.unregisterInstance = instance => {
-    let proxyInstances, i, ii;
-    let proxies = _componentToProxy.get(instance.constructor);
-
-    if(_.isNil(proxies)) return;
-
-    for(i = proxies.length - 1; i >= 0; i--){
-        proxyInstances = _proxyInstances.get(proxies[i]);
-        for(ii = proxyInstances.length - 1; ii >= 0; i--){
-            // For speed this does not maintain order. Problem?
-            if(proxyInstances[ii] === instance){
-                proxyInstances[ii] = proxyInstances[proxyInstances.length - 1];
-                proxyInstances.pop();
-                return;
-            }
-        }
-    }
-};
-
-_applicationMap.getProxyByInterfaceKey = callback => {
-    let key = callback(_keyMap);
-
-    if(!_.isString(key)) throw(new Error('Key must be supplied, not ' + typeof key));
-
-    let proxy = _proxyMap[key];
-
-    if(!proxy) throw(new Error('No interface fegistered to key ' + key + '!'));
-
-    return proxy;
-}
-
-
-Object.defineProperties(_app, {
-    model: {  value: _model, writable: false,  enumerable: true },
-    service: { value: {}, writable: false, enumerable: true },
-    events: { value: {}, writable: false, enumerable: true },
-    emitter: { value: emitter, writable: false, enumerable: true },
-    assetManager: { writable: false, enumerable: true, value: assetManager },
-    map: { value: this, writable: false, enumerable: true },
-    getProxyByInterfaceKey: { writable: false, enumerable: true, value: _applicationMap.getProxyByInterfaceKey }
-});
 
 // middleware configs
 
@@ -240,7 +90,7 @@ let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
         isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
 
         let data = DataObject(params, event, isLoggable);
-        let app = _applicationMap.cloneAppObject();
+        let app = _app;
 
         doBefore.run(data, app,
             (data, app) => scope.run(data, app,
@@ -316,5 +166,118 @@ let DebugObject = (data) => {
 
     return _DebugObject;
 };
+
+
+
+
+
+
+/******************************************************************************
+ * Proxies and instances
+ **************************************************************************/
+
+let Proxy = iFace => {
+
+    let _Proxy = Object.create(null);
+
+    let instances = [];
+
+    // warning - use at your own peral!
+    Object.defineProperty(_Proxy, 'instances', {
+        value: instances,
+        enumerable: true,
+        writable: false
+    });
+
+    // add all the methods of the interface to the proxy and make
+    // them call the same method on each instance.
+    iFace.methodNames.forEach(name => Object.defineProperty(_Proxy, name, {
+        value:(...args) => {
+            for(let instance, i = 0, l = instances.length; i < l; i++) {
+                instance = instances[i];
+                instance[name].apply(instance, args);
+            }
+        },
+        writable: false,
+        enumerable : true,
+        configurable :false
+    }));
+
+    _Proxy.addInstance = instance => {
+        for(let i = instances.length - 1; i >= 0; i--) {
+            if(instances[i] === instance)
+                throw(new Error('Instance already in proxy!'));
+        }
+        instances[instances.length] = instance;
+    }
+
+    _Proxy.removeInstance = instance => {
+        for(let i = instances.length - 1; i >= 0; i--){
+            if(instances[i] === instance){
+                return instances.splice(i, 1);
+            }
+
+            if(i === 0)
+                throw(new Error('Instance of ' + instance.constructor + ' not found in proxy!'));
+        }
+    }
+
+    return _Proxy;
+};
+
+_applicationMap.registerInterface = iFace => {
+    if(_proxyMap.get(iFace)) return; // already registered
+
+    _proxyMap.set(iFace, Proxy(iFace));
+
+}
+
+_applicationMap.registerInstance = (instance, interfaces) => {
+    interfaces.forEach(iFace => {
+        let proxy = _proxyMap.get(iFace);
+        if(!proxy) throw(new Error('Interface has not been registered!'));
+
+        proxy.addInstance(instance);
+    })
+}
+
+_applicationMap.unregisterInstance = (instance, interfaces) => {
+    interfaces.forEach(iFace => {
+        let proxy = _proxyMap.get(iFace);
+        if(!proxy) throw(new Error('Interface has not been registered!'));
+
+        proxy.removeInstance(instance);
+    })
+}
+
+
+_applicationMap.getProxyByInterface = iFace => {
+    if(_.isNil(iFace)) throw(new Error('Interface must be supplied!'));
+    console.log('iFace',iFace)
+    let proxy = _proxyMap.get(iFace);
+
+    if(!proxy) throw(new Error('Interface not registered!'));
+
+    return proxy;
+}
+
+
+
+
+
+
+let _app                    = {};
+
+Object.defineProperties(_app, {
+    model: {  value: _model, writable: false,  enumerable: true },
+    service: { value: {}, writable: false, enumerable: true },
+    events: { value: {}, writable: false, enumerable: true },
+    emitter: { value: emitter, writable: false, enumerable: true },
+    assetManager: { writable: false, enumerable: true, value: assetManager },
+    map: { value: this, writable: false, enumerable: true },
+    getProxyByInterface: { writable: false, enumerable: true, value: _applicationMap.getProxyByInterface }
+});
+
+
 
 module.exports = _applicationMap;

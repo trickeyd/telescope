@@ -29,6 +29,7 @@ let Scope = () => {
                 else     return;
 
             let child = iterator.next();
+
             child.run(data, app, loop);
         };
 
@@ -134,6 +135,7 @@ let MethodRunner = scope => (...methods) => {
                     : console.log(method.name);
 
             try {
+
                 switch (method.length) {
                     case 1:
                         // remove scope creation methods and add hierarchy
