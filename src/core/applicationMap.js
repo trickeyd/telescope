@@ -76,25 +76,28 @@ _applicationMap.doAfter = (...middleware) => {
     return ChoiceBlock(_doAfter).do.apply(null, middleware);
 };
 
-
+let threadId = 0;
 let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
     let scope = Scope();
+    let doBefore = _doBefore || Scope();
+    let doAfter = _doAfter || Scope();
 
     // now add listeners to events from application configs
     events.forEach(event => emitter.on(event).to( (event, params) => {
-        let doBefore = _doBefore || Scope();
-        let doAfter = _doAfter || Scope();
-
         params = params || {};
 
-        isLoggable && console.log("!! -> ", event, '--> Starting middleware configs');
+        let thread = threadId++;
 
-        let data = DataObject(params, event, isLoggable);
+        isLoggable && console.log('|' + _.pad(thread, 10) + "|--------------> Event emited: " + event);
+
+        let data = DataObject(params, event, isLoggable, thread);
         let app = _app;
 
         doBefore.run(data, app,
             (data, app) => scope.run(data, app,
-                (data, app) => doAfter.run(data, app)));
+                (data, app) => doAfter.run(data, app, () => {
+                    isLoggable && console.log('|' + _.pad(thread, 10) + '|<-------------- COMPLETE');
+                })));
     }));
 
     return ChoiceBlock(scope);
@@ -121,8 +124,8 @@ _applicationMap.disableLogging = () => {
     _loggingIsEnabled = false;
 };
 
-let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
-    let data = {event, params, locals: {data: {}}};
+let DataObject = (params=undefined, event=undefined, isLoggable=false, threadId) => {
+    let data = {event, params, threadId, locals: {data: {}}};
     data.calls = {lastCall: null};
     data.debug = DebugObject(data);
     data.debug.isLoggable = isLoggable;
@@ -131,7 +134,7 @@ let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
     return data;
 }
 
-let DebugObject = (data) => {
+let DebugObject = data => {
     let _DebugObject = {};
 
     _DebugObject.stack =[];
@@ -166,6 +169,20 @@ let DebugObject = (data) => {
         });
         console.log(logString);
     };
+
+    _DebugObject.log = (...args) => {
+        let threadId    = data.threadId + '';
+        let event       = data.event;
+        let depth       = data.debug.depth;
+        let debug       = data.debug.debugString;
+
+        const EVT_LENGTH = 30;
+        let eventStr = _.pad(event, EVT_LENGTH);
+        if(eventStr.length > EVT_LENGTH) eventStr = eventStr.substr(0, EVT_LENGTH-3) + '...';
+        let startingText = '|'+_.pad(threadId, 10) + '|' + eventStr + '|';
+        args.unshift(_.padEnd(startingText, (depth + 1) * 4 + startingText.length));
+        console.log.apply(null, args);
+    }
 
     Object.defineProperties(_DebugObject, {
         debugString: {
@@ -267,7 +284,6 @@ _applicationMap.unregisterInstance = (instance, interfaces) => {
 
 _applicationMap.getProxyByInterface = iFace => {
     if(_.isNil(iFace)) throw(new Error('Interface must be supplied!'));
-    console.log('iFace',iFace)
     let proxy = _proxyMap.get(iFace);
 
     if(!proxy) throw(new Error('Interface not registered!'));

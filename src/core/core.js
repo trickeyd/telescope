@@ -3,11 +3,31 @@
 let Iterator        = require('./Iterator');
 let _               = require('lodash');
 
-let log = (string, method, debug=undefined, isTrue=undefined) => {
+let log = (data, method, isTrue=undefined) => {
+    let threadId    = data.threadId + '';
+    let event       = data.event;
+    let depth       = data.debug.depth;
+    let debug       = data.debug.debugString;
+
+    let string;
+    switch(data.debug.type){
+        case 'scope':
+            string = 'scope =>';
+            break;
+        case 'method':
+            string = 'Method';
+            break;
+        case 'guard':
+            string = 'Guard';
+            break;
+        default:
+            string = 'eh?' + data.debug.type;
+    }
+
     string += ' ';
-    if(!_.isNil(debug)){
+    if(_.isString(debug)){
         string += debug;
-    } else if(_.isString(method.name)) {
+    } else if(_.isString(method.name) && method.name !== '') {
         string += method.name;
     } else {
         string += '"unknown"';
@@ -17,7 +37,7 @@ let log = (string, method, debug=undefined, isTrue=undefined) => {
         string += ' === ' + isTrue;
     }
 
-    console.log(string);
+    data.debug.log(string);
 }
 
 let Scope = () => {
@@ -94,12 +114,13 @@ let Conditional = (ifScope) => {
         ifScope.addChild(_Conditional);
 
         _Conditional.run = (data, app, next) => {
+            data.debug.type = 'guard'
             for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
                 guard = guards[i];
                 isTrue = guard(data, app);
                 _isInverted && (isTrue = !isTrue)
 
-                data.debug.isLoggable && log('Guard:', guard, data.debug.debugString, isTrue);
+                data.debug.isLoggable && log(data, guard, isTrue);
 
                 data.debug.addToStack(guards[i].name, isTrue);
 
@@ -144,12 +165,13 @@ let MethodRunner = scope => (...methods) => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
 
-            data.debug.isLoggable && log('Method:', method, data.debug.debugString);
-
             try {
 
                 switch (method.length) {
                     case 1:
+                        data.debug.type = 'scope'
+                        let str = 'scope ->';
+                        log(data, method);
                         // remove scope creation methods and add hierarchy
                         // to the structure to increase speed on later runs
                         iterator.removeLastIndex();
@@ -163,10 +185,16 @@ let MethodRunner = scope => (...methods) => {
                         });
 
                     case 2:
+                        data.debug.type = 'method';
+                        data.debug.isLoggable && log(data,  method);
+
                         await method(data, app);
                         return loop();
 
                     case 3:
+                        data.debug.type = 'method';
+                        data.debug.isLoggable && log(data, method);
+
                         data.debug.addToStack(method.name);
                         return method(data, app, loop);
 
