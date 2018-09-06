@@ -5,6 +5,7 @@ let map                 = require('./src/core/applicationMap');
 let lastCallWasSuccess  = require('./src/guards/lastCallWasSuccess');
 let fetchJson           = require('./src/middleware/fetchJson');
 let dispatchEvent       = require('./src/middleware/dispatchEvent');
+let interfaceEqualTo    = require('./src/middleware/interfaceEqualTo');
 
 let start  = (...configs) => {
     // this is to avoid hot reloading going through everything again
@@ -22,7 +23,15 @@ let guards = {
 
 let middleware = {
     fetchJson,
-    dispatchEvent
+    dispatchEvent,
+    interfaceEqualTo
 };
 
-module.exports = { start, assetManager, emitter, map, guards, middleware };
+module.exports = {
+    get start() { return start },
+    get assetManager() { return assetManager },
+    get emitter() { return emitter },
+    get map() { return map },
+    get guards() { return guards },
+    get middleware() { return middleware }
+};

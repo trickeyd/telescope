@@ -1,7 +1,24 @@
 'use strict';
 
 let Iterator        = require('./Iterator');
+let _               = require('lodash');
 
+let log = (string, method, debug=undefined, isTrue=undefined) => {
+    string += ' ';
+    if(!_.isNil(debug)){
+        string += debug;
+    } else if(_.isString(method.name)) {
+        string += method.name;
+    } else {
+        string += '"unknown"';
+    }
+
+    if(_.isBoolean(isTrue)){
+        string += ' === ' + isTrue;
+    }
+
+    console.log(string);
+}
 
 let Scope = () => {
     let _Scope = {};
@@ -82,12 +99,10 @@ let Conditional = (ifScope) => {
                 isTrue = guard(data, app);
                 _isInverted && (isTrue = !isTrue)
 
-                if(data.isLoggable)
-                    !guard.name
-                        ? console.log('unnamed guard method == ' + isTrue )
-                        : console.log(guard.name + '  ==  ' + isTrue );
+                data.debug.isLoggable && log('Guard:', guard, data.debug.debugString, isTrue);
 
                 data.debug.addToStack(guards[i].name, isTrue);
+
                 if(!isTrue) {
                     return next();
                 }
@@ -95,7 +110,7 @@ let Conditional = (ifScope) => {
 
             data.debug.depth++;
 
-            _methodRunner.run(data, app, ()=>{
+            _methodRunner.run(data, app, ()=> {
                 ifScope.completeScope();
                 data.debug.depth--;
                 next();
@@ -129,10 +144,7 @@ let MethodRunner = scope => (...methods) => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
 
-            if(data.isLoggable)
-                !method.name
-                    ? console.log('unnamed method')
-                    : console.log(method.name);
+            data.debug.isLoggable && log('Method:', method, data.debug.debugString);
 
             try {
 
@@ -175,7 +187,6 @@ let MethodRunner = scope => (...methods) => {
 
     return _MethodRunner;
 };
-
 
 module.exports = {
     ChoiceBlock,

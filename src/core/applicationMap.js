@@ -125,7 +125,7 @@ let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
     let data = {event, params, locals: {data: {}}};
     data.calls = {lastCall: null};
     data.debug = DebugObject(data);
-    data.isLoggable = isLoggable;
+    data.debug.isLoggable = isLoggable;
     data.localStorage = {};
 
     return data;
@@ -136,6 +136,9 @@ let DebugObject = (data) => {
 
     _DebugObject.stack =[];
     _DebugObject.depth = 0;
+    _DebugObject.isLoggable = false;
+
+    let _currentDebugString = null;
 
     _DebugObject.addToStack = (methodName, guardResult) => {
         let stack = data.debug.stack;
@@ -163,6 +166,17 @@ let DebugObject = (data) => {
         });
         console.log(logString);
     };
+
+    Object.defineProperties(_DebugObject, {
+        debugString: {
+            get: () => {
+                let str = _currentDebugString;
+                _currentDebugString = null;
+                return str;
+            },
+            set: string => _currentDebugString = string
+        }
+    });
 
     return _DebugObject;
 };
