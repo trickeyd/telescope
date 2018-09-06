@@ -171,7 +171,7 @@ let DebugObject = data => {
     };
 
     _DebugObject.log = (...args) => {
-        let threadId    = data.threadId + '';
+        let threadId    = 't:'+data.threadId + '';
         let event       = data.event;
         let depth       = data.debug.depth;
         let debug       = data.debug.debugString;
@@ -179,7 +179,7 @@ let DebugObject = data => {
         const EVT_LENGTH = 30;
         let eventStr = _.pad(event, EVT_LENGTH);
         if(eventStr.length > EVT_LENGTH) eventStr = eventStr.substr(0, EVT_LENGTH-3) + '...';
-        let startingText = '|'+_.pad(threadId, 10) + '|' + eventStr + '|';
+        let startingText = '|'+_.pad(threadId, 15) + '|' + eventStr + '|';
         args.unshift(_.padEnd(startingText, (depth + 1) * 4 + startingText.length));
         console.log.apply(null, args);
     }
