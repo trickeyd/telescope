@@ -4,21 +4,22 @@ let Iterator        = require('./Iterator');
 let _               = require('lodash');
 
 let log = (data, method, isTrue=undefined) => {
-    let threadId    = data.threadId + '';
     let event       = data.event;
     let depth       = data.debug.depth;
     let debug       = data.debug.debugString;
 
+    data.debug.deleteOverideMethodName();
+
     let string;
     switch(data.debug.type){
         case 'scope':
-            string = 'scope =>';
+            string = 'Scope => ';
             break;
         case 'method':
-            string = 'Method';
+            string = 'Method: ';
             break;
         case 'guard':
-            string = 'Guard';
+            string = 'Guard: ';
             break;
         default:
             string = 'eh?' + data.debug.type;
@@ -129,11 +130,11 @@ let Conditional = (ifScope) => {
                 }
             }
 
-            data.debug.depth++;
+            data.debug.increaseDepth();
 
             _methodRunner.run(data, app, ()=> {
                 ifScope.completeScope();
-                data.debug.depth--;
+                data.debug.decreaseDepth();
                 next();
             });
         };
@@ -178,9 +179,9 @@ let MethodRunner = scope => (...methods) => {
                         let newScope = Scope();
                         scope.addChild(newScope);
                         method(ChoiceBlock(newScope));
-                        data.debug.depth++;
+                        data.debug.increaseDepth();
                         return newScope.run(data, app, () => {
-                            data.debug.depth--;
+                            data.debug.decreaseDepth();
                             loop();
                         });
 

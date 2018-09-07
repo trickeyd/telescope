@@ -1,4 +1,6 @@
 'use strict';
+
+let proxies             = require("./src/core/proxies");
 let emitter             = require('./src/globalEmitter');
 let assetManager        = require('./src/assetManager');
 let map                 = require('./src/core/applicationMap');
@@ -33,5 +35,6 @@ module.exports = {
     get emitter() { return emitter },
     get map() { return map },
     get guards() { return guards },
-    get middleware() { return middleware }
+    get middleware() { return middleware },
+    get proxies() { return proxies },
 };
