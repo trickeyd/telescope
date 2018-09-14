@@ -1,5 +1,10 @@
 'use strict';
 
+let {
+    Scope,
+    MethodRunner,
+    ChoiceBlock
+}                       = require("./src/core/core");
 let proxies             = require("./src/core/proxies");
 let emitter             = require('./src/globalEmitter');
 let assetManager        = require('./src/assetManager');
@@ -37,4 +42,7 @@ module.exports = {
     get guards() { return guards },
     get middleware() { return middleware },
     get proxies() { return proxies },
+    get Scope() { return Scope },
+    get MethodRunner() { return MethodRunner },
+    get ChoiceBlock() { return ChoiceBlock },
 };

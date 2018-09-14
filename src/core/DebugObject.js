@@ -13,7 +13,7 @@ let DebugObject = (data, isLoggable=true) => {
     let _jobId = 'j:' + _nextJobIdNum++;
 
     Object.defineProperties(_DebugObject, {
-        overideMethodName:{ value : string => _currentDebugString = string },
+        overrideMethodName:{ value : string => _currentDebugString = string },
         deleteOverideMethodName:{ value : () => _currentDebugString = null },
         debugString: {  get: () => _currentDebugString },
         stack: { get : () => _stack },

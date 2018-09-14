@@ -39,6 +39,7 @@ let log = (data, method, isTrue=undefined) => {
     }
 
     data.debug.log(string);
+    return string;
 }
 
 let Scope = () => {
@@ -91,10 +92,10 @@ let DoBlock = (parentScope) => (...methods) => {
 
 
 let IfBlock = (parentScope) => {
-    let _IfBlock = Scope();
-    parentScope.addChild(_IfBlock);
+    let _ifScope = Scope();
+    parentScope.addChild(_ifScope);
 
-    return Conditional(_IfBlock);
+    return Conditional(_ifScope);
 };
 
 
@@ -121,9 +122,7 @@ let Conditional = (ifScope) => {
                 isTrue = guard(data, app);
                 _isInverted && (isTrue = !isTrue)
 
-                data.debug.isLoggable && log(data, guard, isTrue);
-
-                data.debug.addToStack(guards[i].name, isTrue);
+                data.debug.isLoggable && data.debug.addToStack(log(data, guard, isTrue));
 
                 if(!isTrue) {
                     return next();
@@ -165,19 +164,21 @@ let MethodRunner = scope => (...methods) => {
         let loop = async () => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
-
+            let newScope;
             try {
 
                 switch (method.length) {
                     case 1:
                         data.debug.type = 'scope'
-                        let str = 'scope ->';
-                        log(data, method);
-                        // remove scope creation methods and add hierarchy
-                        // to the structure to increase speed on later runs
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
+                        // remove scope creation methods and add scope hierarchy
+                        // to the main structure to increase speed on later runs
                         iterator.removeLastIndex();
-                        let newScope = Scope();
+                        newScope = Scope();
                         scope.addChild(newScope);
+
+                        // as our method is a scope we must pass a ChoiceBlock
+                        // through with it as thats where the useful methods are - do() etc.
                         method(ChoiceBlock(newScope));
                         data.debug.increaseDepth();
                         return newScope.run(data, app, () => {
@@ -187,25 +188,38 @@ let MethodRunner = scope => (...methods) => {
 
                     case 2:
                         data.debug.type = 'method';
-                        data.debug.isLoggable && log(data,  method);
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
 
                         await method(data, app);
                         return loop();
 
                     case 3:
                         data.debug.type = 'method';
-                        data.debug.isLoggable && log(data, method);
-
-                        data.debug.addToStack(method.name);
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
                         return method(data, app, loop);
+
+                    case 4:
+                        data.debug.type = 'method';
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method))
+
+                        // new scope but does not collaps as with 2 args this is
+                        // so that the user can manipulate whole sections (needs more thought)
+                        // also scope is not wrapped in ChoiseBlock so can be accessed directly
+                        newScope = Scope();
+                        method(data, app, loop, newScope);
+                        return newScope.run(data, app, () => {
+                            data.debug.decreaseDepth();
+                            loop();
+                        });
 
                     default:
                         throw(new Error('Reflow middleware must accept 1-3 arguments!'));
                 }
             } catch (err){
-                console.log('ERROR!');
-                console.log('There has been an error @ ' + method.name + '!');
-                console.log('reflow stack:');
+                console.log(' ');
+                console.log('!!!!!! There has been an error @ ' + method.name + ' !!!!!!!');
+                console.log('reflow stack for event: ' + data.event);
+                console.log(err.message);
                 data.debug.logStack();
                 console.log('\n JS stack:');
                 console.log(err);
@@ -219,5 +233,6 @@ let MethodRunner = scope => (...methods) => {
 
 module.exports = {
     ChoiceBlock,
-    Scope
+    Scope,
+    MethodRunner
 };

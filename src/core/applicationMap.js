@@ -101,6 +101,11 @@ _applicationMap.withParams = (isLoggable=true, isOnce=false) => {
 };
 
 _applicationMap.on = (...events) => {
+    events.forEach(event => {
+        if(!_.isString(event)){
+            throw(new Error('Event mus be a string, not ' + typeof event + '!'));
+        }
+    })
     return mapEventAndReturnChoice(events);
 };
 

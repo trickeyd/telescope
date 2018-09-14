@@ -93,6 +93,20 @@ module.exports = {
         return proxy;
     },
 
+    getInstanceByInterface: iFace => {
+        if (_.isNil(iFace)) throw(new Error('Interface must be supplied!'));
+
+        let proxy = _proxyMap.get(iFace);
+        if (!proxy) throw(new Error('Interface not registered!'));
+
+        let intances = proxy.instances;
+        if(intances.length > 1)
+            throw(new Error('Method "getInstanceByInterface" can only be used for single instance components. There' +
+                'are currently ' + instances.length + ' instances of ' + iFace.name + '!'));
+
+        return intances[0];
+    },
+
     registerInterfaces: interfaces => {
         //let interfaces = callback(Interface);
         let ret = {};
