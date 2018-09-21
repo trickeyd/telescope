@@ -1,7 +1,7 @@
 'use strict';
 
 let _                   = require('lodash');
-let HashMap             = require('../HashMap')
+let HashMap             = require('../HashMap');
 let _proxyMap           = HashMap();
 let _interfacesByName   = Object.create(null);
 
@@ -32,13 +32,18 @@ let Proxy = iFace => {
         configurable :false
     }));
 
+    _Proxy.setProps = (props, callback) => {
+        if(!instances.length) throw(new Error('setProps called on proxy, but there are no instances of: ' + iFace.name));
+        instances.forEach(inst => inst.setProps(props, callback));
+    };
+
     _Proxy.addInstance = instance => {
         for(let i = instances.length - 1; i >= 0; i--) {
             if(instances[i] === instance)
                 throw(new Error('Instance already in proxy!'));
         }
         instances[instances.length] = instance;
-    }
+    };
 
     _Proxy.removeInstance = instance => {
         for(let i = instances.length - 1; i >= 0; i--){
@@ -49,7 +54,7 @@ let Proxy = iFace => {
             if(i === 0)
                 throw(new Error('Instance of ' + instance.constructor + ' not found in proxy!'));
         }
-    }
+    };
 
     return _Proxy;
 };
@@ -66,7 +71,8 @@ let Interface = (name, methodNames) => {
 
 
 module.exports = {
-    registerInstance: (instance, interfaces) => {
+    registerInstance: (instance) => {
+        let interfaces = instance.constructor.interfaces;
         interfaces.forEach(iFace => {
             let proxy = _proxyMap.get(iFace);
             if (!proxy) throw(new Error('Interface has not been registered!'));
@@ -75,7 +81,8 @@ module.exports = {
         })
     },
 
-    unregisterInstance: (instance, interfaces) => {
+    unregisterInstance: (instance) => {
+        let interfaces = instance.constructor.interfaces;
         interfaces.forEach(iFace => {
             let proxy = _proxyMap.get(iFace);
             if (!proxy) throw(new Error('Interface has not been registered!'));
@@ -112,7 +119,7 @@ module.exports = {
         let ret = {};
         Object.keys(interfaces).forEach(key => {
             if(_interfacesByName[key])
-                throw(new Error('An intercafe has already been registered with the name "'+key+'"'));
+                throw(new Error('An interface has already been registered with the name "'+key+'"'));
 
             let methods = interfaces[key];
 
@@ -120,8 +127,8 @@ module.exports = {
 
             if (_proxyMap.get(iFace)) return; // already registered
             _proxyMap.set(iFace, Proxy(iFace));
-        })
+        });
 
         return ret;
     }
-}
+};
