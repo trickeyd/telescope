@@ -40,7 +40,7 @@ let log = (data, method, isTrue=undefined) => {
 
     data.debug.log(string);
     return string;
-}
+};
 
 let Scope = () => {
     let _Scope = {};
@@ -169,7 +169,7 @@ let MethodRunner = scope => (...methods) => {
 
                 switch (method.length) {
                     case 1:
-                        data.debug.type = 'scope'
+                        data.debug.type = 'scope';
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
                         // remove scope creation methods and add scope hierarchy
                         // to the main structure to increase speed on later runs
@@ -200,7 +200,7 @@ let MethodRunner = scope => (...methods) => {
 
                     case 4:
                         data.debug.type = 'method';
-                        data.debug.isLoggable && data.debug.addToStack(log(data, method))
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
 
                         // new scope but does not collaps as with 2 args this is
                         // so that the user can manipulate whole sections (needs more thought)

@@ -13,6 +13,7 @@ let lastCallWasSuccess  = require('./src/guards/lastCallWasSuccess');
 let fetchJson           = require('./src/middleware/fetchJson');
 let dispatchEvent       = require('./src/middleware/dispatchEvent');
 let interfaceEqualTo    = require('./src/middleware/interfaceEqualTo');
+let replanEvents        = require('./src/core/replanEvents');
 
 let start  = (...configs) => {
     // this is to avoid hot reloading going through everything again
@@ -45,4 +46,5 @@ module.exports = {
     get Scope() { return Scope },
     get MethodRunner() { return MethodRunner },
     get ChoiceBlock() { return ChoiceBlock },
+    get replanEvents() { return replanEvents },
 };

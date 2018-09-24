@@ -54,7 +54,7 @@ let DebugObject = (data, isLoggable=true) => {
         let startingText = '|'+_.pad(_jobId, 15) + '|'// + eventStr + '|';
         args.unshift(_.padEnd(startingText, (_depth + 1) * 4 + startingText.length));
         console.log.apply(null, args);
-    }
+    };
 
     _DebugObject.increaseDepth = () => _depth++;
     _DebugObject.decreaseDepth = () => _depth--;
