@@ -11,7 +11,7 @@ let Proxy = iFace => {
 
     let instances = [];
 
-    // warning - use at your own peral!
+    // warning - use at your own peril!
     Object.defineProperty(_Proxy, 'instances', {
         value: instances,
         enumerable: true,
@@ -64,7 +64,7 @@ let Interface = (name, methodNames) => {
         throw(new Error('Interface key must be a string!'));
 
     if(!_.isArray(methodNames))
-        throw(new Error('Second argument of Interface must be an array of method names!'))
+        throw(new Error('Second argument of Interface must be an array of method names!'));
 
     return { name, methodNames }
 };
@@ -72,6 +72,8 @@ let Interface = (name, methodNames) => {
 
 module.exports = {
     registerInstance: (instance) => {
+        _proxyMap.get(instance.constructor).addInstance(instance);
+
         let interfaces = instance.constructor.interfaces;
         interfaces.forEach(iFace => {
             let proxy = _proxyMap.get(iFace);
@@ -82,6 +84,8 @@ module.exports = {
     },
 
     unregisterInstance: (instance) => {
+        _proxyMap.get(instance.constructor).removeInstance(instance);
+
         let interfaces = instance.constructor.interfaces;
         interfaces.forEach(iFace => {
             let proxy = _proxyMap.get(iFace);
@@ -115,7 +119,6 @@ module.exports = {
     },
 
     registerInterfaces: interfaces => {
-        //let interfaces = callback(Interface);
         let ret = {};
         Object.keys(interfaces).forEach(key => {
             if(_interfacesByName[key])
@@ -130,5 +133,10 @@ module.exports = {
         });
 
         return ret;
+    },
+
+    registerType: (holder, name) => {
+        if (_proxyMap.get(holder)) return; // already registered
+        _proxyMap.set(holder, Proxy(Interface(name, [])));
     }
 };
