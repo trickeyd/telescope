@@ -95,25 +95,35 @@ module.exports = {
         })
     },
 
-    getProxyByInterface: iFace => {
-        if (_.isNil(iFace)) throw(new Error('Interface must be supplied!'));
-        let proxy = _proxyMap.get(iFace);
+    /**
+     * @function getMethodByType - accepts an interface of a constructor
+     * @param type
+     * @returns {Proxy}
+     */
+    getProxyByType: type => {
+        if (_.isNil(type)) throw(new Error('Interface must be supplied!'));
+        let proxy = _proxyMap.get(type);
 
         if (!proxy) throw(new Error('Interface not registered!'));
 
         return proxy;
     },
 
-    getInstanceByInterface: iFace => {
-        if (_.isNil(iFace)) throw(new Error('Interface must be supplied!'));
+    /**
+     * @function getInstanceByType - accepts an interface of a constructor
+     * @param type
+     * @returns {Proxy}
+     */
+    getInstanceByType: type => {
+        if (_.isNil(type)) throw(new Error('Interface must be supplied!'));
 
-        let proxy = _proxyMap.get(iFace);
+        let proxy = _proxyMap.get(type);
         if (!proxy) throw(new Error('Interface not registered!'));
 
         let intances = proxy.instances;
         if(intances.length > 1)
-            throw(new Error('Method "getInstanceByInterface" can only be used for single instance components. There' +
-                'are currently ' + instances.length + ' instances of ' + iFace.name + '!'));
+            throw(new Error('Method "getInstanceByType" can only be used for single instance components. There' +
+                'are currently ' + instances.length + ' instances of ' + type.name + '!'));
 
         return intances[0];
     },

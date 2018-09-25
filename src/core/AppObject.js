@@ -13,8 +13,8 @@ let AppObject = (model, service, events) => {
         events: { value: events, writable: false, enumerable: true },
         emitter: { value: emitter, writable: false, enumerable: true },
         assetManager: { writable: false, enumerable: true, value: assetManager },
-        getProxyByInterface: { writable: false, enumerable: true, value: proxies.getProxyByInterface },
-        getInstanceByInterface: { writable: false, enumerable: true, value: proxies.getInstanceByInterface },
+        getProxyByType: { writable: false, enumerable: true, value: proxies.getProxyByType },
+        getInstanceByType: { writable: false, enumerable: true, value: proxies.getInstanceByType },
     });
 
     Object.freeze(_App);
