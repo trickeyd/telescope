@@ -68,13 +68,26 @@ _applicationMap.doAfter = (...middleware) => {
 };
 
 
-let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
-    let scope = Scope();
+_applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
+    if(_.isString(events)) events = [events];
+    if(!_.isArray(events)) throw(new Error('"events" must be a string, or an array of strings!'));
+
+    if(!_.isFunction(scope) || scope.length !== 1)
+        throw(new Error('"scope" must be a method accepting a single argument!'));
+
+    events.forEach(event => {
+        if(!_.isString(event)){
+            throw(new Error('"events" arrays must contain only strings, not ' + typeof event + '!'));
+        }
+    });
+
+    let newScope = Scope();
+
+    // TODO - refactor the before / after stuff as is a bit whack at the moment
     let doBefore = _doBefore || Scope();
     let doAfter = _doAfter || Scope();
 
-    // now add listeners to events from application configs
-    events.forEach(event => emitter.on(event).to( (event, params) => {
+    let runMethod = (params, event) => {
         params = params || {};
 
         let data = DataObject(params, event, isLoggable);
@@ -82,31 +95,19 @@ let mapEventAndReturnChoice = (events, isLoggable=true, isOnce=false) => {
 
         isLoggable && data.debug.log("EMITTED  |-------------->  " + event);
 
+        scope(ChoiceBlock(newScope));
+
         doBefore.run(data, app,
-            (data, app) => scope.run(data, app,
+            (data, app) => newScope.run(data, app,
                 (data, app) => doAfter.run(data, app, (data, app) => {
                     isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
                 })));
-    }));
+    };
 
-    return ChoiceBlock(scope);
-}
+    // now add listeners to events from application configs
+    events.forEach(event => emitter.on(event).to(runMethod).once(isOnce));
 
-_applicationMap.withParams = (isLoggable=true, isOnce=false) => {
-    return {
-        on : (...events) => {
-            return mapEventAndReturnChoice(events, isLoggable, isOnce);
-        }
-    }
-};
-
-_applicationMap.on = (...events) => {
-    events.forEach(event => {
-        if(!_.isString(event)){
-            throw(new Error('Event mus be a string, not ' + typeof event + '!'));
-        }
-    })
-    return mapEventAndReturnChoice(events);
+    return scope;
 };
 
 

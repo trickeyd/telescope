@@ -15,6 +15,9 @@ let log = (data, method, isTrue=undefined) => {
         case 'scope':
             string = 'Scope => ';
             break;
+            case 'scope+method':
+            string = 'ScopeMethod => ';
+            break;
         case 'method':
             string = 'Method: ';
             break;
@@ -144,12 +147,12 @@ let Conditional = (ifScope) => {
             get do()    { return DoBlock(ifScope.parent) },
             get if()    { return IfBlock(ifScope.parent) }
         }
-    }
+    };
 
     _internals.not = (...guards) => {
         _isInverted = true;
         return _internals.apply(null, guards);
-    }
+    };
 
     return _internals;
 };
@@ -188,20 +191,20 @@ let MethodRunner = scope => (...methods) => {
 
                     case 2:
                         data.debug.type = 'method';
-                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
-
                         await method(data, app);
+                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
                         return loop();
 
                     case 3:
                         data.debug.type = 'method';
-                        data.debug.isLoggable && data.debug.addToStack(log(data, method));
-                        return method(data, app, loop);
+                        return method(data, app, () => {
+                            data.debug.isLoggable && data.debug.addToStack(log(data, method));
+                            loop();
+                        });
 
                     case 4:
-                        data.debug.type = 'method';
+                        data.debug.type = 'scope+method';
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
-
                         // new scope but does not collaps as with 2 args this is
                         // so that the user can manipulate whole sections (needs more thought)
                         // also scope is not wrapped in ChoiseBlock so can be accessed directly
@@ -216,6 +219,7 @@ let MethodRunner = scope => (...methods) => {
                         throw(new Error('Reflow middleware must accept 1-3 arguments!'));
                 }
             } catch (err){
+                data.debug.isLoggable && data.debug.addToStack(log(data, method));
                 console.log(' ');
                 console.log('!!!!!! There has been an error @ ' + method.name + ' !!!!!!!');
                 console.log('reflow stack for event: ' + data.event);
