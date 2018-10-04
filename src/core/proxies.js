@@ -120,12 +120,12 @@ module.exports = {
         let proxy = _proxyMap.get(type);
         if (!proxy) throw(new Error('Interface not registered!'));
 
-        let intances = proxy.instances;
-        if(intances.length > 1)
+        let instances = proxy.instances;
+        if(instances.length > 1)
             throw(new Error('Method "getInstanceByType" can only be used for single instance components. There' +
                 'are currently ' + instances.length + ' instances of ' + type.name + '!'));
 
-        return intances[0];
+        return instances[0];
     },
 
     registerInterfaces: interfaces => {

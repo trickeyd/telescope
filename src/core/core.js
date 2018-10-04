@@ -31,7 +31,7 @@ let log = (data, method, isTrue=undefined) => {
     string += ' ';
     if(_.isString(debug)){
         string += debug;
-    } else if(_.isString(method.name) && method.name !== '') {
+    } else if(method && _.isString(method.name) && method.name !== '') {
         string += method.name;
     } else {
         string += '"unknown"';
@@ -82,7 +82,7 @@ let Scope = () => {
 };
 
 
-let DoBlock = (parentScope) => (...methods) => {
+let DoWrapper = (parentScope) => (...methods) => {
     let _DoBlock = {};
     let runner = MethodRunner(parentScope).apply(null, methods);
 
@@ -90,11 +90,11 @@ let DoBlock = (parentScope) => (...methods) => {
 
     parentScope.addChild(_DoBlock);
 
-    return ChoiceBlock(parentScope);
+    return ChoiceWrapper(parentScope);
 };
 
 
-let IfBlock = (parentScope) => {
+let IfWrapper = (parentScope) => {
     let _ifScope = Scope();
     parentScope.addChild(_ifScope);
 
@@ -102,10 +102,10 @@ let IfBlock = (parentScope) => {
 };
 
 
-let ChoiceBlock = (scope) => {
+let ChoiceWrapper = (scope) => {
     return {
-        get do() { return DoBlock(scope) },
-        get if() { return IfBlock(scope) }
+        get do() { return DoWrapper(scope) },
+        get if() { return IfWrapper(scope) }
     }
 };
 
@@ -119,11 +119,11 @@ let Conditional = (ifScope) => {
         ifScope.addChild(_Conditional);
 
         _Conditional.run = (data, app, next) => {
-            data.debug.type = 'guard'
+            data.debug.type = 'guard';
             for(let i = 0, l = guards.length, guard, isTrue; i < l; i++) {
                 guard = guards[i];
                 isTrue = guard(data, app);
-                _isInverted && (isTrue = !isTrue)
+                _isInverted && (isTrue = !isTrue);
 
                 data.debug.isLoggable && data.debug.addToStack(log(data, guard, isTrue));
 
@@ -144,8 +144,8 @@ let Conditional = (ifScope) => {
         return {
             get else()  { return Conditional(ifScope)(()=>true) },
             get elseIf(){ return Conditional(ifScope) },
-            get do()    { return DoBlock(ifScope.parent) },
-            get if()    { return IfBlock(ifScope.parent) }
+            get do()    { return DoWrapper(ifScope.parent) },
+            get if()    { return IfWrapper(ifScope.parent) }
         }
     };
 
@@ -167,42 +167,47 @@ let MethodRunner = scope => (...methods) => {
         let loop = async () => {
             if(!iterator.hasNext()) return next();
             let method = iterator.next();
-            let newScope;
             try {
-
                 switch (method.length) {
                     case 1:
                         data.debug.type = 'scope';
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
                         // remove scope creation methods and add scope hierarchy
                         // to the main structure to increase speed on later runs
-                        iterator.removeLastIndex();
-                        newScope = Scope();
-                        scope.addChild(newScope);
 
-                        // as our method is a scope we must pass a ChoiceBlock
+                        // TODO- now the whole thing is a new scope every time
+                        // so this doesnt make sense unless we start caching
+
+                        //iterator.removeLastIndex();
+                        let newScope = Scope();
+                        //scope.addChild(newScope);
+
+                        // as our method is a scope we must pass a ChoiceWrapper
                         // through with it as thats where the useful methods are - do() etc.
-                        method(ChoiceBlock(newScope));
+                        method(ChoiceWrapper(newScope));
                         data.debug.increaseDepth();
-                        return newScope.run(data, app, () => {
+                        newScope.run(data, app, () => {
                             data.debug.decreaseDepth();
                             loop();
                         });
+                        break;
 
                     case 2:
                         data.debug.type = 'method';
                         await method(data, app);
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
-                        return loop();
+                        loop();
+                        break;
 
                     case 3:
                         data.debug.type = 'method';
-                        return method(data, app, () => {
+                        method(data, app, () => {
                             data.debug.isLoggable && data.debug.addToStack(log(data, method));
                             loop();
                         });
+                        break;
 
-                    case 4:
+                    /*case 4:
                         data.debug.type = 'scope+method';
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
                         // new scope but does not collaps as with 2 args this is
@@ -213,7 +218,7 @@ let MethodRunner = scope => (...methods) => {
                         return newScope.run(data, app, () => {
                             data.debug.decreaseDepth();
                             loop();
-                        });
+                        });*/
 
                     default:
                         throw(new Error('Reflow middleware must accept 1-3 arguments!'));
@@ -221,7 +226,7 @@ let MethodRunner = scope => (...methods) => {
             } catch (err){
                 data.debug.isLoggable && data.debug.addToStack(log(data, method));
                 console.log(' ');
-                console.log('!!!!!! There has been an error @ ' + method.name + ' !!!!!!!');
+                method && console.log('!!!!!! There has been an error @ ' + method.name + ' !!!!!!!');
                 console.log('reflow stack for event: ' + data.event);
                 console.log(err.message);
                 data.debug.logStack();
@@ -236,7 +241,7 @@ let MethodRunner = scope => (...methods) => {
 };
 
 module.exports = {
-    ChoiceBlock,
+    ChoiceBlock: ChoiceWrapper,
     Scope,
     MethodRunner
 };

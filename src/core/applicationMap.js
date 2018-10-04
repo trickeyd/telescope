@@ -76,12 +76,9 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
         throw(new Error('"scope" must be a method accepting a single argument!'));
 
     events.forEach(event => {
-        if(!_.isString(event)){
+        if(!_.isString(event))
             throw(new Error('"events" arrays must contain only strings, not ' + typeof event + '!'));
-        }
     });
-
-    let newScope = Scope();
 
     // TODO - refactor the before / after stuff as is a bit whack at the moment
     let doBefore = _doBefore || Scope();
@@ -95,13 +92,16 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
 
         isLoggable && data.debug.log("EMITTED  |-------------->  " + event);
 
+        // TODO - I could cash the scopes so it doesn't need to
+        // add children etc every time
+        let newScope = Scope();
         scope(ChoiceBlock(newScope));
 
         doBefore.run(data, app,
             (data, app) => newScope.run(data, app,
-                (data, app) => doAfter.run(data, app, (data, app) => {
-                    isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
-                })));
+                (data, app) => doAfter.run(data, app,
+                    (data, app) => isLoggable && data.debug.log('COMPLETE |<--------------  ' + event)
+        )));
     };
 
     // now add listeners to events from application configs
