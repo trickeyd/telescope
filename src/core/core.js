@@ -8,7 +8,7 @@ let log = (data, method, isTrue=undefined) => {
     let depth       = data.debug.depth;
     let debug       = data.debug.debugString;
 
-    data.debug.deleteOverideMethodName();
+    data.debug.deleteOverrideMethodName();
 
     let string;
     switch(data.debug.type){
@@ -176,7 +176,7 @@ let MethodRunner = scope => (...methods) => {
                         // to the main structure to increase speed on later runs
 
                         // TODO- now the whole thing is a new scope every time
-                        // so this doesnt make sense unless we start caching
+                        // so this doesn't make sense unless we start caching
 
                         //iterator.removeLastIndex();
                         let newScope = Scope();
@@ -194,31 +194,16 @@ let MethodRunner = scope => (...methods) => {
 
                     case 2:
                         data.debug.type = 'method';
-                        await method(data, app);
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
+                        await method(data, app);
                         loop();
                         break;
 
                     case 3:
                         data.debug.type = 'method';
-                        method(data, app, () => {
-                            data.debug.isLoggable && data.debug.addToStack(log(data, method));
-                            loop();
-                        });
-                        break;
-
-                    /*case 4:
-                        data.debug.type = 'scope+method';
                         data.debug.isLoggable && data.debug.addToStack(log(data, method));
-                        // new scope but does not collaps as with 2 args this is
-                        // so that the user can manipulate whole sections (needs more thought)
-                        // also scope is not wrapped in ChoiseBlock so can be accessed directly
-                        newScope = Scope();
-                        method(data, app, loop, newScope);
-                        return newScope.run(data, app, () => {
-                            data.debug.decreaseDepth();
-                            loop();
-                        });*/
+                        method(data, app, loop);
+                        break;
 
                     default:
                         throw(new Error('Reflow middleware must accept 1-3 arguments!'));

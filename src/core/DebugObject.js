@@ -14,11 +14,11 @@ let DebugObject = (data, isLoggable=true) => {
 
     Object.defineProperties(_DebugObject, {
         overrideMethodName:{ value : string => _currentDebugString = string },
-        deleteOverideMethodName:{ value : () => _currentDebugString = null },
+        deleteOverrideMethodName:{ value : () => _currentDebugString = null },
         debugString: {  get: () => _currentDebugString },
         stack: { get : () => _stack },
         depth: { get : () => _depth },
-        isLoggable:  { get : () => _isLoggable },
+        isLoggable:  { get : () => _isLoggable }
     });
 
     _DebugObject.addToStack = (methodName, guardResult) => {
