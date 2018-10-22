@@ -91,7 +91,7 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
         let app = AppObject(_model, _service, _events);
 
         isLoggable && data.debug.log("EMITTED  |-------------->  " + event);
-        isLoggable && data.debug.log("with params  |---------->  " + params);
+        isLoggable && data.debug.log("with params  |---------->  ", params);
 
         // TODO - I could cash the scopes so it doesn't need to
         // add children etc every time

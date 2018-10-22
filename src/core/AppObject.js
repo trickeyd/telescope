@@ -20,6 +20,6 @@ let AppObject = (model, service, events) => {
     Object.freeze(_App);
 
     return _App
-}
+};
 
 module.exports = AppObject;

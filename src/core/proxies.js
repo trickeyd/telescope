@@ -33,7 +33,6 @@ let Proxy = iFace => {
     }));
 
     _Proxy.setProps = (props, callback) => {
-        if(!instances.length) throw(new Error('setProps called on proxy, but there are no instances of: ' + iFace.name));
         instances.forEach(inst => inst.setProps(props, callback));
     };
 

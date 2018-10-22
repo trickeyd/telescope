@@ -159,6 +159,15 @@ let Conditional = (ifScope) => {
 
 
 let MethodRunner = scope => (...methods) => {
+
+    // make sure there are no undefined etc.
+    for(let i = methods.length - 1; i <= 0; i--){
+        if(typeof methods[i] !== 'function'){
+            throw(new Error('Only functions can be added to MethodRunner. Attempted to add: '
+                + typeof methods[i]));
+        }
+    }
+
     let _MethodRunner = {};
 
     _MethodRunner.run = (data, app, next) => {
