@@ -45,21 +45,32 @@ let log = (data, method, isTrue=undefined) => {
     return string;
 };
 
-let Scope = () => {
+let Scope = (event=undefined) => {
     let _Scope = {};
 
     let _children = [];
     let _isCompleted = false;
+    let _event = event;
+    let _parent = null;
 
-    _Scope.parent = null;
+    Object.defineProperties(_Scope, {
+        parent: { get: () => _parent },
+        event: { get: () => _event },
+    });
 
     _Scope.addChild = (child) => {
+        if(child.hasOwnProperty('INTERNAL_setParent')){
+            child.INTERNAL_setParent(_Scope);
+            child.INTERNAL_setEventType(event);
+        }
         _children[_children.length] = child;
-        child.parent = _Scope;
     };
 
     _Scope.completeScope = () => _isCompleted = true;
     _Scope.getIsComplete = () => _isCompleted;
+
+    _Scope.INTERNAL_setEventType = event => _event = event;
+    _Scope.INTERNAL_setParent = parent => _parent = parent;
 
     _Scope.run = (data, app, next) => {
         _isCompleted = false;
@@ -161,10 +172,10 @@ let Conditional = (ifScope) => {
 let MethodRunner = scope => (...methods) => {
 
     // make sure there are no undefined etc.
-    for(let i = methods.length - 1; i <= 0; i--){
+    for(let i = methods.length - 1; i >= 0; i--){
         if(typeof methods[i] !== 'function'){
-            throw(new Error('Only functions can be added to MethodRunner. Attempted to add: '
-                + typeof methods[i]));
+            throw(new Error('Only functions can be added to MethodRunner. Element ' + i.toString()
+                + ' of event: ' + scope.event + ' is of type:' + typeof methods[i] + '!'));
         }
     }
 

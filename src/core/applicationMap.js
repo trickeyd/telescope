@@ -56,14 +56,14 @@ Object.defineProperties(_applicationMap, {
 _applicationMap.doBefore = (...middleware) => {
     if(_doBefore)
         throw(new Error('Do before scope has already been set!'));
-    _doBefore = Scope(true);
+    _doBefore = Scope();
     return ChoiceBlock(_doBefore).do.apply(null, middleware);
 };
 
 _applicationMap.doAfter = (...middleware) => {
     if(_doAfter)
         throw(new Error('Do before scope has already been set!'));
-    _doAfter = Scope(true);
+    _doAfter = Scope();
     return ChoiceBlock(_doAfter).do.apply(null, middleware);
 };
 
@@ -95,7 +95,7 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
 
         // TODO - I could cash the scopes so it doesn't need to
         // add children etc every time
-        let newScope = Scope();
+        let newScope = Scope(event);
         scope(ChoiceBlock(newScope));
 
         doBefore.run(data, app,
