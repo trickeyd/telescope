@@ -105,7 +105,6 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
                     (data, app) => {
                         isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
                     if(_queue.length){
-                        isLoggable && data.debug.log('NEXT IN QUEUE');
                         _queue.shift();
                         let nextInQueue = _queue[0];
                         nextInQueue && nextInQueue();
@@ -120,7 +119,6 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
         _queue[_queue.length] = method;
 
         if(_queue.length === 1){
-            console.log('running');
             method();
         }
 

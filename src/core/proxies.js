@@ -36,6 +36,10 @@ let Proxy = iFace => {
         instances.forEach(inst => inst.setProps(props, callback));
     };
 
+    _Proxy.setState = (state, callback) => {
+        instances.forEach(inst => inst.setState(state, callback));
+    };
+
     _Proxy.addInstance = instance => {
         for(let i = instances.length - 1; i >= 0; i--) {
             if(instances[i] === instance)
