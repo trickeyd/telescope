@@ -67,6 +67,7 @@ _applicationMap.doAfter = (...middleware) => {
     return ChoiceBlock(_doAfter).do.apply(null, middleware);
 };
 
+let _queue = [];
 
 _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
     if(_.isString(events)) events = [events];
@@ -101,12 +102,32 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
         doBefore.run(data, app,
             (data, app) => newScope.run(data, app,
                 (data, app) => doAfter.run(data, app,
-                    (data, app) => isLoggable && data.debug.log('COMPLETE |<--------------  ' + event)
+                    (data, app) => {
+                        isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
+                    if(_queue.length){
+                        isLoggable && data.debug.log('NEXT IN QUEUE');
+                        _queue.shift();
+                        let nextInQueue = _queue[0];
+                        nextInQueue && nextInQueue();
+                    }
+                }
         )));
     };
 
+    let sortQueue = runMethod => (params, event) => {
+        let method = () => runMethod(params, event);
+
+        _queue[_queue.length] = method;
+
+        if(_queue.length === 1){
+            console.log('running');
+            method();
+        }
+
+    };
+
     // now add listeners to events from application configs
-    events.forEach(event => emitter.on(event).to(runMethod).once(isOnce));
+    events.forEach(event => emitter.on(event).to(sortQueue(runMethod)).once(isOnce));
 
     return scope;
 };

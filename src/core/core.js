@@ -174,8 +174,8 @@ let MethodRunner = scope => (...methods) => {
     // make sure there are no undefined etc.
     for(let i = methods.length - 1; i >= 0; i--){
         if(typeof methods[i] !== 'function'){
-            throw(new Error('Only functions can be added to MethodRunner. Element ' + i.toString()
-                + ' of event: ' + scope.event + ' is of type:' + typeof methods[i] + '!'));
+            throw new Error(`Only functions can be added to MethodRunner. Element ${i}`
+                + ` of event: ${scope.event} is of type: ${typeof methods[i]}!`);
         }
     }
 
@@ -195,7 +195,7 @@ let MethodRunner = scope => (...methods) => {
                         // remove scope creation methods and add scope hierarchy
                         // to the main structure to increase speed on later runs
 
-                        // TODO- now the whole thing is a new scope every time
+                        // TODO - now the whole thing is a new scope every time
                         // so this doesn't make sense unless we start caching
 
                         //iterator.removeLastIndex();
@@ -226,13 +226,13 @@ let MethodRunner = scope => (...methods) => {
                         break;
 
                     default:
-                        throw(new Error('Reflow middleware must accept 1-3 arguments!'));
+                        throw new Error('Reflow middleware must accept 1-3 arguments!');
                 }
             } catch (err){
                 data.debug.isLoggable && data.debug.addToStack(log(data, method));
                 console.log(' ');
-                method && console.log('!!!!!! There has been an error @ ' + method.name + ' !!!!!!!');
-                console.log('reflow stack for event: ' + data.event);
+                method && console.log(`!!!!!! There has been an error @${method.name}!!!!!!!`);
+                console.log(`reflow stack for event: ${data.event}`);
                 console.log(err.message);
                 data.debug.logStack();
                 console.log('\n JS stack:');
