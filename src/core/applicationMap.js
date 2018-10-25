@@ -104,16 +104,16 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
                 (data, app) => doAfter.run(data, app,
                     (data, app) => {
                         isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
-                    if(_queue.length){
+                    /*if(_queue.length){
                         _queue.shift();
                         let nextInQueue = _queue[0];
                         nextInQueue && nextInQueue();
-                    }
+                    }*/
                 }
         )));
     };
 
-    let sortQueue = runMethod => (params, event) => {
+/*    let sortQueue = runMethod => (params, event) => {
         let method = () => runMethod(params, event);
 
         _queue[_queue.length] = method;
@@ -122,10 +122,10 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
             method();
         }
 
-    };
+    };*/
 
     // now add listeners to events from application configs
-    events.forEach(event => emitter.on(event).to(sortQueue(runMethod)).once(isOnce));
+    events.forEach(event => emitter.on(event).to(/*sortQueue(*/runMethod/*)*/).once(isOnce));
 
     return scope;
 };
