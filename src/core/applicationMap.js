@@ -3,7 +3,7 @@
 let DataObject      = require("./DataObject");
 let AppObject       = require("./AppObject");
 let emitter         = require("../globalEmitter");
-let ChoiceBlock     = require('./core').ChoiceBlock;
+let ChoiceWrapper    = require('./core').ChoiceWrapper;
 let Scope           = require('./core').Scope;
 let _               = require('lodash');
 
@@ -57,14 +57,14 @@ _applicationMap.doBefore = (...middleware) => {
     if(_doBefore)
         throw(new Error('Do before scope has already been set!'));
     _doBefore = Scope();
-    return ChoiceBlock(_doBefore).do.apply(null, middleware);
+    return ChoiceWrapper(_doBefore).apply(null, middleware);
 };
 
 _applicationMap.doAfter = (...middleware) => {
     if(_doAfter)
         throw(new Error('Do before scope has already been set!'));
     _doAfter = Scope();
-    return ChoiceBlock(_doAfter).do.apply(null, middleware);
+    return ChoiceWrapper(_doAfter).apply(null, middleware);
 };
 
 let _queue = [];
@@ -97,7 +97,7 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
         // TODO - I could cash the scopes so it doesn't need to
         // add children etc every time
         let newScope = Scope(event);
-        scope(ChoiceBlock(newScope));
+        scope(ChoiceWrapper(newScope));
 
         doBefore.run(data, app,
             (data, app) => newScope.run(data, app,

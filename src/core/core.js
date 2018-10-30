@@ -4,8 +4,6 @@ let Iterator        = require('./Iterator');
 let _               = require('lodash');
 
 let log = (data, method, isTrue=undefined) => {
-    let event       = data.event;
-    let depth       = data.debug.depth;
     let debug       = data.debug.debugString;
 
     data.debug.deleteOverrideMethodName();
@@ -114,10 +112,11 @@ let IfWrapper = (parentScope) => {
 
 
 let ChoiceWrapper = (scope) => {
-    return {
-        get do() { return DoWrapper(scope) },
-        get if() { return IfWrapper(scope) }
-    }
+    let ret     = DoWrapper(scope);
+    ret.do      = ret;
+
+    ret.if      = IfWrapper(scope);
+    return ret
 };
 
 let Conditional = (ifScope) => {
@@ -152,12 +151,16 @@ let Conditional = (ifScope) => {
             });
         };
 
-        return {
-            get else()  { return Conditional(ifScope)(()=>true) },
-            get elseIf(){ return Conditional(ifScope) },
-            get do()    { return DoWrapper(ifScope.parent) },
-            get if()    { return IfWrapper(ifScope.parent) }
-        }
+        let ret     = DoWrapper(ifScope.parent);
+        ret.do      = ret;
+
+        ret.if      = IfWrapper(ifScope.parent);
+        ret.elseif  = Conditional(ifScope);
+        ret.else    = Conditional(ifScope)(()=>true);
+
+        // TODO - dont like this implementation of else
+
+        return ret;
     };
 
     _internals.not = (...guards) => {
@@ -203,7 +206,7 @@ let MethodRunner = scope => (...methods) => {
                         //scope.addChild(newScope);
 
                         // as our method is a scope we must pass a ChoiceWrapper
-                        // through with it as thats where the useful methods are - do() etc.
+                        // through with it as thats where the useful methods are.
                         method(ChoiceWrapper(newScope));
                         data.debug.increaseDepth();
                         newScope.run(data, app, () => {
@@ -246,7 +249,6 @@ let MethodRunner = scope => (...methods) => {
 };
 
 module.exports = {
-    ChoiceBlock: ChoiceWrapper,
     Scope,
-    MethodRunner
+    ChoiceWrapper
 };

@@ -1,6 +1,5 @@
 'use strict';
 
-let ChoiceBlock = require('./core/core').ChoiceBlock;
 let Scope = require('./core/core').Scope;
 let map = require('./core/applicationMap');
 let ev = require('./globalEmitter');
@@ -11,40 +10,40 @@ let mid = log => {
 };
 
 let globalScope = Scope();
-let testChoice = ChoiceBlock(globalScope);
+let testChoice = ChoiceWrapper(globalScope);
 
 
 
-map.on('poo').do(
+map.on('poo')(
     mid('m1'),
     mid('m2')
 ).if(()=>false)(
     mid('m3'),
     mid('m4')
-).elseIf(()=>true)(
+).elseif(()=>true)(
     (data, app, next) => {
         console.log('nexty');
         next();
     },
     mid('m5'),
     mid('m6')
-).elseIf(()=>true)(
+).elseif(()=>true)(
     mid('FUUUUUUUUKKKKKK!!!!')
 ).else(
     mid('m7'),
     mid('m8')
-).do(
+)(
     mid('m9')
-).do(
+)(
     mid('m10')
 ).if(()=>false)(
     mid('m11'),
-    scope => scope.do(
+    scope => scope(
         mid('m12')
     )
 ).else(
     mid('m13'),
-    scope => scope.do(
+    scope => scope(
         mid('m14'),
         mid('m15')
     ).if(()=>true)(
@@ -52,7 +51,7 @@ map.on('poo').do(
     ).if(()=>true)(
         mid('m17')
     )
-).do(
+)(
     mid('m18')
 );
 
