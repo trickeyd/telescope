@@ -176,7 +176,12 @@ let MethodRunner = scope => (...methods) => {
 
     // make sure there are no undefined etc.
     for(let i = methods.length - 1; i >= 0; i--){
-        if(typeof methods[i] !== 'function'){
+        // we allow for null to be added for the sake of conditional
+        // scope creation but it is removed at this point
+        if(methods[i] === null){
+            methods.splice(i, 1);
+
+        } else if(typeof methods[i] !== 'function'){
             throw new Error(`Only functions can be added to MethodRunner. Element ${i}`
                 + ` of event: ${scope.event} is of type: ${typeof methods[i]}!`);
         }

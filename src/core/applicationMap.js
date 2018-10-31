@@ -53,37 +53,37 @@ Object.defineProperties(_applicationMap, {
     loggingIsEnabled: { get: () => _loggingIsEnabled }
 });
 
-_applicationMap.doBefore = (...middleware) => {
+_applicationMap.doBefore = scope => {
     if(_doBefore)
-        throw(new Error('Do before scope has already been set!'));
+        throw new Error('Do before scope has already been set!');
     _doBefore = Scope();
-    return ChoiceWrapper(_doBefore).apply(null, middleware);
+    return scope(ChoiceWrapper(_doBefore));
 };
 
-_applicationMap.doAfter = (...middleware) => {
+_applicationMap.doAfter = scope => {
     if(_doAfter)
-        throw(new Error('Do before scope has already been set!'));
+        throw new Error('Do before scope has already been set!');
     _doAfter = Scope();
-    return ChoiceWrapper(_doAfter).apply(null, middleware);
+    return scope(ChoiceWrapper(_doAfter));
 };
 
 let _queue = [];
 
-_applicationMap.on = (events, scope, isLoggable=true, isOnce=false) => {
+_applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=false, skipAfter=false) => {
     if(_.isString(events)) events = [events];
-    if(!_.isArray(events)) throw(new Error('"events" must be a string, or an array of strings!'));
+    if(!_.isArray(events)) throw new Error('"events" must be a string, or an array of strings!');
 
     if(!_.isFunction(scope) || scope.length !== 1)
         throw(new Error('"scope" must be a method accepting a single argument!'));
 
     events.forEach(event => {
         if(!_.isString(event))
-            throw(new Error('"events" arrays must contain only strings, not ' + typeof event + '!'));
+            throw new Error(`"events" arrays must contain only strings, not ${typeof event}!`);
     });
 
     // TODO - refactor the before / after stuff as is a bit whack at the moment
-    let doBefore = _doBefore || Scope();
-    let doAfter = _doAfter || Scope();
+    let doBefore = skipBefore === true || _.isNil(_doBefore) ? Scope() : _doBefore;
+    let doAfter  = skipAfter  === true || _.isNil(_doAfter)  ? Scope() : _doAfter;
 
     let runMethod = (params, event) => {
         params = params || {};
