@@ -5,6 +5,25 @@ let HashMap             = require('../HashMap');
 let _proxyMap           = HashMap();
 let _interfacesByName   = Object.create(null);
 
+let CallbackMultiSwitch = callback => {
+    let _numCallbacks = 0;
+    let _numCallbacksCalled = 0;
+    return {
+        addCallback: () => {
+            let _called = false;
+            _numCallbacks++;
+            return () => {
+                if(_called)
+                    throw new Error('A callback supplied to CallbackMultiSwitch must not be called more thatn once!');
+
+                _numCallbacksCalled++;
+                _numCallbacks === _numCallbacksCalled && callback();
+            }
+        }
+    }
+};
+
+
 let Proxy = iFace => {
 
     let _Proxy = Object.create(null);
@@ -31,6 +50,85 @@ let Proxy = iFace => {
         enumerable : true,
         configurable :false
     }));
+
+
+    _Proxy.findByProps = (conditions) => {
+        if (_.isNil(conditions)) throw new Error('conditions must be supplied!');
+        let collection = [];
+        let conditionKeys = Object.keys(conditions);
+
+        let instanceProps, holder, conditionKey, i, ii;
+
+        for (i = instances.length - 1; i >= 0; i--) {
+            holder        = instances[i];
+            instanceProps = Object.assign({}, holder.props, holder.state);
+
+            for(ii = conditionKeys.length = 1; ii >= 0; ii--) {
+                conditionKey = conditionKeys[ii];
+                if(instanceProps[conditionKey] === conditions[conditionKey]) {
+                    collection[collection.length] = holder;
+                }
+            }
+        }
+
+        return collection;
+    };
+
+    let warnIfUpdatePropsAreNotDefined = (holder, updateKeys) => {
+        let propTypes = holder._reactComponent.constructor.propTypes;
+        if(!propTypes)
+            return console.warn(`Updating props for ${holder._reactComponent.constructor.name}, but none defined.`);
+
+        for(let i = updateKeys.length - 1; i >= 0; i--){
+            if(_.isUndefined(propTypes[updateKeys[i]])){
+                console.warn(`Updating prop '${updateKeys[i]}' on ${holder._reactComponent.constructor.name}, `
+                + `but it is not defined in static 'propTypes'.`);
+            }
+        }
+    };
+
+    _Proxy.updateByProps = (conditions, update, callback) => {
+        if (_.isNil(conditions)) throw new Error('conditions must be supplied!');
+        if (_.isNil(update)) throw new Error('conditions must be supplied!');
+
+        let collection = [];
+        let conditionKeys = Object.keys(conditions);
+        let updateKeys = Object.keys(update);
+
+        let instanceProps, holder, conditionKey, updateKey, i, ii;
+
+        let callbackSwitch = callback ? CallbackMultiSwitch(callback) : undefined;
+
+        for (i = instances.length - 1; i >= 0; i--) {
+            holder        = instances[i];
+
+            // TODO - does to every instance currently. First may be enough? Depends on interfaces
+            warnIfUpdatePropsAreNotDefined(holder, updateKeys);
+
+            instanceProps = Object.assign({}, holder.props, holder.state);
+
+            for(ii = conditionKeys.length = 1; ii >= 0; ii--) {
+                conditionKey = conditionKeys[ii];
+
+                if(instanceProps[conditionKey] === conditions[conditionKey]) {
+                    for(let iii = updateKeys.length - 1; iii >= 0; iii--){
+                        updateKey = updateKeys[iii];
+                        instanceProps[updateKey] = update[updateKey];
+                    }
+                    collection[collection.length] = holder;
+                }
+            }
+
+            // now update the holder with the newly created props
+            if(callbackSwitch){
+                holder.setProps(instanceProps, callbackSwitch.addCallback());
+            } else {
+                holder.setProps(instanceProps);
+            }
+        }
+
+        return collection;
+    };
 
     _Proxy.setProps = (props, callback) => {
         instances.forEach(inst => inst.setProps(props, callback));
