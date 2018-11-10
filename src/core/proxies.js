@@ -105,10 +105,10 @@ let Proxy = iFace => {
             // TODO - does to every instance currently. First may be enough? Depends on interfaces
             warnIfUpdatePropsAreNotDefined(holder, updateKeys);
 
-            queryObject = isState ? holder.state : Object.assign({}, holder.props, holder.state);
+            queryObject = isState ? holder.state || {} : Object.assign({}, holder.props, holder.state);
             updateObject = Object.assign({}, holder.props, holder.state);
 
-            for(ii = conditionKeys.length = 1; ii >= 0; ii--) {
+            for(ii = conditionKeys.length - 1; ii >= 0; ii--) {
                 conditionKey = conditionKeys[ii];
 
                 if(queryObject[conditionKey] === conditions[conditionKey]) {
@@ -139,11 +139,11 @@ let Proxy = iFace => {
     };
 
     _Proxy.findbyState = conditions => {
-        return query(false, conditions);
+        return query(false, conditions, true);
     };
 
     _Proxy.updateByProps = (conditions, update, callback) => {
-        return query(true, conditions, true, update, callback);
+        return query(true, conditions, false, update, callback);
     };
 
     _Proxy.updateByState = (conditions, update, callback) => {
