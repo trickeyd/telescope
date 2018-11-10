@@ -87,15 +87,15 @@ let Proxy = iFace => {
         }
     };
 
-    _Proxy.updateByProps = (conditions, update, callback) => {
+    let query = (isUpdate, conditions, isState=false, update=undefined, callback=undefined) => {
         if (_.isNil(conditions)) throw new Error('conditions must be supplied!');
-        if (_.isNil(update)) throw new Error('conditions must be supplied!');
+        if (isUpdate && _.isNil(update)) throw new Error('update object must be supplied when updating!');
 
         let collection = [];
         let conditionKeys = Object.keys(conditions);
         let updateKeys = Object.keys(update);
 
-        let instanceProps, holder, conditionKey, updateKey, i, ii;
+        let queryObject, updateObject, holder, conditionKey, updateKey, i, ii;
 
         let callbackSwitch = callback ? CallbackMultiSwitch(callback) : undefined;
 
@@ -105,30 +105,52 @@ let Proxy = iFace => {
             // TODO - does to every instance currently. First may be enough? Depends on interfaces
             warnIfUpdatePropsAreNotDefined(holder, updateKeys);
 
-            instanceProps = Object.assign({}, holder.props, holder.state);
+            queryObject = isState ? holder.state : Object.assign({}, holder.props, holder.state);
+            updateObject = Object.assign({}, holder.props, holder.state);
 
             for(ii = conditionKeys.length = 1; ii >= 0; ii--) {
                 conditionKey = conditionKeys[ii];
 
-                if(instanceProps[conditionKey] === conditions[conditionKey]) {
+                if(queryObject[conditionKey] === conditions[conditionKey]) {
                     for(let iii = updateKeys.length - 1; iii >= 0; iii--){
                         updateKey = updateKeys[iii];
-                        instanceProps[updateKey] = update[updateKey];
+                        if(isUpdate) updateObject[updateKey] = update[updateKey];
                     }
-                    collection[collection.length] = holder;
+                    if(!isUpdate) collection[collection.length] = holder;
                 }
             }
 
+            if(!isUpdate) continue;
+
             // now update the holder with the newly created props
             if(callbackSwitch){
-                holder.setProps(instanceProps, callbackSwitch.addCallback());
+                holder.setProps(updateObject, callbackSwitch.addCallback());
             } else {
-                holder.setProps(instanceProps);
+                holder.setProps(updateObject);
             }
         }
 
-        return collection;
+        if(!isUpdate) return collection;
     };
+
+
+    _Proxy.findByProps = conditions => {
+        return query(false, conditions);
+    };
+
+    _Proxy.findbyState = conditions => {
+        return query(false, conditions);
+    };
+
+    _Proxy.updateByProps = (conditions, update, callback) => {
+        return query(true, conditions, true, update, callback);
+    };
+
+    _Proxy.updateByState = (conditions, update, callback) => {
+        return query(true, conditions, true, update, callback);
+    };
+
+
 
     _Proxy.setProps = (props, callback) => {
         instances.forEach(inst => inst.setProps(props, callback));

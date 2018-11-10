@@ -29,21 +29,31 @@ let fetchJson = (url, body, method, headers, isSuccess) => {
     let fetchJson = async (data, app) => {
         let bodyString = body ? JSON.stringify(body) : undefined;
 
-        let res = await fetch(url, {
-            method : method,
-            headers : headers,
-            body : bodyString
-        });
+        let res;
+        try{
+            res = await fetch(url, {
+                method : method,
+                headers : headers,
+                body : bodyString
+            });
+        } catch (err) {
+            console.log('fetch failed');
+            console.log(err);
+        }
 
         let callIsSuccessful = isSuccess(res);
 
-        res = await res.json();
+        if(callIsSuccessful)
+            res = await res.json();
+        else
+            res = {data:{err:0}};
 
         return data.calls[url] = data.calls.lastCall = Call(res, callIsSuccessful, body);
     };
+
     return fetchJson;
 };
 
-let defaultDetermineSuccess = res => (res.status >= 200) && (res.status <= 299);
+let defaultDetermineSuccess = res => res && res.ok && res.status >= 200 && res.status <= 299;
 
 module.exports = fetchJson;
