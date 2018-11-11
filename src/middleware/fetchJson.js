@@ -43,10 +43,16 @@ let fetchJson = (url, body, method, headers, isSuccess) => {
 
         let callIsSuccessful = isSuccess(res);
 
-        if(callIsSuccessful)
-            res = await res.json();
-        else
-            res = {data:{err:0}};
+        let json;
+        try {
+            json = await res.json();
+        } catch(err){
+            console.log('Could not pass JSON');
+        }
+
+        if(!json){
+            res.err = 0;
+        }
 
         return data.calls[url] = data.calls.lastCall = Call(res, callIsSuccessful, body);
     };
