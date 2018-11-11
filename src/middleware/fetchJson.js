@@ -52,6 +52,8 @@ let fetchJson = (url, body, method, headers, isSuccess) => {
 
         if(!json){
             res.err = 0;
+        } else {
+            res = json;
         }
 
         return data.calls[url] = data.calls.lastCall = Call(res, callIsSuccessful, body);
