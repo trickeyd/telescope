@@ -123,6 +123,19 @@ let Conditional = (ifScope) => {
     let _isInverted = false;
 
     let _internals = (...guards) => (...methods) => {
+        // make sure there are no undefined etc.
+        for(let i = guards.length - 1; i >= 0; i--){
+            // we allow for null to be added for the sake of conditional
+            // scope creation but it is removed at this point
+            if(guards[i] === null){
+                methods.splice(i, 1);
+
+            } else if(typeof guards[i] !== 'function'){
+                throw new Error(`Only functions can be added as guards. Element ${i}`
+                    + ` of event: ${ifScope.event} is of type: ${typeof guards[i]}!`);
+            }
+        }
+
         let _Conditional = {};
         let _methodRunner = MethodRunner(ifScope).apply(null, methods);
 

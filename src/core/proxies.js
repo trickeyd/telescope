@@ -138,7 +138,7 @@ let Proxy = iFace => {
         return query(false, conditions);
     };
 
-    _Proxy.findbyState = conditions => {
+    _Proxy.findByState = conditions => {
         return query(false, conditions, true);
     };
 
