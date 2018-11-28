@@ -60,8 +60,15 @@ let Scope = (event=undefined) => {
         if(child.hasOwnProperty('INTERNAL_setParent')){
             child.INTERNAL_setParent(_Scope);
             child.INTERNAL_setEventType(event);
+            child.INTERNAL_app  = _Scope.INTERNAL_app;
+            child.INTERNAL_data = _Scope.INTERNAL_data;
         }
         _children[_children.length] = child;
+    };
+
+    _Scope.setObjects = (data, app) => {
+        _Scope.INTERNAL_app = app || null;
+        _Scope.INTERNAL_data = data || null;
     };
 
     _Scope.completeScope = () => _isCompleted = true;
@@ -69,9 +76,6 @@ let Scope = (event=undefined) => {
 
     _Scope.INTERNAL_setEventType = event => _event = event;
     _Scope.INTERNAL_setParent = parent => _parent = parent;
-
-    _Scope.INTERNAL_app = undefined;
-    _Scope.INTERNAL_data = undefined;
 
     _Scope.run = (data, app, next) => {
         _Scope.INTERNAL_app = app;

@@ -97,6 +97,8 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
         // TODO - I could cash the scopes so it doesn't need to
         // add children etc every time
         let newScope = Scope(event);
+        newScope.setObjects(data, app);
+
         scope(ChoiceWrapper(newScope));
 
         doBefore.run(data, app,
