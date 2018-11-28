@@ -88,12 +88,12 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
     let runMethod = (params, event) => {
         params = params || {};
 
+        let data = DataObject(params, event, isLoggable);
+        let app = AppObject(_model, _service, _events);
+
         let parentScope = Scope();
         parentScope.INTERNAL_setEventType(event);
         parentScope.INTERNAL_setObjects(data, app);
-
-        let data = DataObject(params, event, isLoggable);
-        let app = AppObject(_model, _service, _events);
 
         isLoggable && data.debug.log("EMITTED  |-------------->  " + event);
         isLoggable && data.debug.log("with params  |---------->  ", params);
