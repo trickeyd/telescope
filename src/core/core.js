@@ -235,6 +235,9 @@ let MethodRunner = scope => (...methods) => {
 
                         //iterator.removeLastIndex();
                         let newScope = Scope();
+                        newScope.INTERNAL_setEventType(scope.event);
+                        newScope.INTERNAL_setObjects(scope.data, scope.app);
+
                         //scope.addChild(newScope);
 
                         // as our method is a scope we must pass a ChoiceWrapper
