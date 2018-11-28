@@ -50,17 +50,21 @@ let Scope = () => {
     let _isCompleted = false;
     let _event = null;
     let _parent = null;
+    let _app = null;
+    let _data = null;
 
     Object.defineProperties(_Scope, {
         parent: { get: () => _parent },
-        event: { get: () => _event }
+        event: { get: () => _event },
+        app: { get: () => _app },
+        data: { get: () => _data },
     });
 
     _Scope.addChild = (child) => {
         if(child.hasOwnProperty('INTERNAL_setParent')){
             child.INTERNAL_setParent(_Scope);
             child.INTERNAL_setEventType(_event);
-            child.INTERNAL_setObjects(_Scope.INTERNAL_data, _Scope.INTERNAL_app);
+            child.INTERNAL_setObjects(_data, _app);
         }
         _children[_children.length] = child;
     };
@@ -71,8 +75,8 @@ let Scope = () => {
     _Scope.INTERNAL_setEventType = event => _event = event;
     _Scope.INTERNAL_setParent = parent => _parent = parent;
     _Scope.INTERNAL_setObjects = (data, app) => {
-        _Scope.INTERNAL_app = app || null;
-        _Scope.INTERNAL_data = data || null;
+        _app = app;
+        _data = data;
     };
 
     _Scope.run = (data, app, next) => {
@@ -122,8 +126,8 @@ let ChoiceWrapper = (scope) => {
     Object.defineProperties(ret, {
         do:{ get:() => ret },
         if:{ get: () => IfWrapper(scope)},
-        app:{ get: ()=>scope.INTERNAL_app },
-        data:{ get: ()=>scope.INTERNAL_data },
+        app:{ get: ()=> scope.app },
+        data:{ get: ()=> scope.data },
     });
 
     return ret
