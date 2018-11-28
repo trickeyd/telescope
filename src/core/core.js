@@ -59,7 +59,7 @@ let Scope = () => {
     _Scope.addChild = (child) => {
         if(child.hasOwnProperty('INTERNAL_setParent')){
             child.INTERNAL_setParent(_Scope);
-            child.INTERNAL_setEventType(event);
+            child.INTERNAL_setEventType(_event);
             child.INTERNAL_setObjects(_Scope.INTERNAL_data, _Scope.INTERNAL_app);
         }
         _children[_children.length] = child;
