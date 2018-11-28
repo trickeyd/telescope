@@ -53,7 +53,7 @@ let Scope = (event=undefined) => {
 
     Object.defineProperties(_Scope, {
         parent: { get: () => _parent },
-        event: { get: () => _event },
+        event: { get: () => _event }
     });
 
     _Scope.addChild = (child) => {
@@ -70,7 +70,12 @@ let Scope = (event=undefined) => {
     _Scope.INTERNAL_setEventType = event => _event = event;
     _Scope.INTERNAL_setParent = parent => _parent = parent;
 
+    _Scope.INTERNAL_app = undefined;
+    _Scope.INTERNAL_data = undefined;
+
     _Scope.run = (data, app, next) => {
+        _Scope.INTERNAL_app = app;
+        _Scope.INTERNAL_data = data;
         _isCompleted = false;
         let iterator = Iterator(_children);
 
@@ -113,9 +118,14 @@ let IfWrapper = (parentScope) => {
 
 let ChoiceWrapper = (scope) => {
     let ret     = DoWrapper(scope);
-    ret.do      = ret;
 
-    ret.if      = IfWrapper(scope);
+    Object.defineProperties(ret, {
+        do:{ get:() => ret },
+        if:{ get: () => IfWrapper(scope)},
+        app:{ get: ()=>scope.INTERNAL_app },
+        data:{ get: ()=>scope.INTERNAL_data },
+    });
+
     return ret
 };
 
