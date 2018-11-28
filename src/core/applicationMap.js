@@ -88,6 +88,10 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
     let runMethod = (params, event) => {
         params = params || {};
 
+        let parentScope = Scope();
+        parentScope.INTERNAL_setEventType(event);
+        parentScope.INTERNAL_setObjects(data, app);
+
         let data = DataObject(params, event, isLoggable);
         let app = AppObject(_model, _service, _events);
 
@@ -97,23 +101,18 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
         // TODO - I could cash the scopes so it doesn't need to
         // add children etc every time
         let newScope = Scope();
-        newScope.INTERNAL_setEventType(event);
-        newScope.INTERNAL_setObjects(data, app);
+
+        parentScope.addChild(doBefore);
+        parentScope.addChild(newScope);
+        parentScope.addChild(doAfter);
 
         scope(ChoiceWrapper(newScope));
 
-        doBefore.run(data, app,
-            (data, app) => newScope.run(data, app,
-                (data, app) => doAfter.run(data, app,
-                    (data, app) => {
-                        isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
-                    /*if(_queue.length){
-                        _queue.shift();
-                        let nextInQueue = _queue[0];
-                        nextInQueue && nextInQueue();
-                    }*/
-                }
-        )));
+        // TODO - can prob stop passing these obs into run now (apart from callback)
+        parentScope.run(data, app, (data, app) => {
+            isLoggable && data.debug.log('COMPLETE |<--------------  ' + event)
+        });
+
     };
 
 /*    let sortQueue = runMethod => (params, event) => {
