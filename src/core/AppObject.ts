@@ -1,8 +1,14 @@
-'use strict';
+import assetManager from "../assetManager";
+import emitter from "../globalEmitter";
+import proxies from "./proxies";
 
-let assetManager    = require("../assetManager");
-let emitter         = require("../globalEmitter");
-let proxies         = require("./proxies");
+type Modal = {}
+type Service = {}
+
+export interface App {
+  state: Modal,
+  service: Service
+} 
 
 let AppObject = (model, service, events) => {
     let _App = {};
@@ -19,7 +25,7 @@ let AppObject = (model, service, events) => {
 
     Object.freeze(_App);
 
-    return _App
+    return _App;
 };
 
-module.exports = AppObject;
+export default AppObject;

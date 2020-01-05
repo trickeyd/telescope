@@ -1,6 +1,10 @@
-'use strict';
+import DebugObject from './DebugObject';
 
-let DebugObject = require('./DebugObject');
+interface Data {
+  local: any // stuff at level of scope
+  add('myVar')
+  get('myVar')
+}
 
 let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
     let _DataObject = {event, params, locals: {data: {}}};
@@ -9,6 +13,6 @@ let DataObject = (params=undefined, event=undefined, isLoggable=false) => {
     _DataObject.localStorage = {};
 
     return _DataObject;
-}
+};
 
-module.exports = DataObject;
+export default DataObject;

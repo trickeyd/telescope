@@ -1,5 +1,3 @@
-'use strict';
-
 let _assetManager = {};
 
 let _imageConfigs = [];
@@ -58,4 +56,4 @@ _assetManager.getImageByKey = constSelectMethod => {
     return constSelectMethod(Object.assign({}, _constantToImage));
 };
 
-module.exports = _assetManager;
+export default _assetManager;

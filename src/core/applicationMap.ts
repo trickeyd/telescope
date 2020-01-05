@@ -1,66 +1,61 @@
-'use strict';
-
-let DataObject      = require("./DataObject");
-let AppObject       = require("./AppObject");
-let emitter         = require("../globalEmitter");
-let ChoiceWrapper    = require('./core').ChoiceWrapper;
-let Scope           = require('./core').Scope;
-let _               = require('lodash');
+import DataObject from "./DataObject";
+import AppObject from "./AppObject";
+import emitter from "../globalEmitter";
+import { ChoiceWrapper } from './core';
+import { Scope } from'./core';
+import _ from 'lodash';
 
 
-let _applicationMap         = {};
 let _doBefore               = null;
 let _doAfter                = null;
 let _componentMixins        = [];
 let _loggingIsEnabled       = false;
 let _service                = {};
 let _events                 = {};
-let _model                  = { clear: () => Object.keys(_model).forEach( key => {
+let _model                  = { 
+                                  clear: () => Object.keys(_model).forEach( key => {
                                       _.isFunction(_model[key]['clear']) && _model[key].clear();
+                                  }),
+                                  clearForResync: () => Object.keys(_model).forEach( key => {
+                                      _.isFunction(_model[key]['clearForResync']) && _model[key].clearForResync();
                                   })
                               };
 
 // app object definitions
-
-_applicationMap.registerModel = (modelName, model) => {
+export const registerModel = (modelName, model) => {
     if(_model[modelName]) throw(new Error('Model', modelName, 'already registered!'));
     Object.defineProperty(_model, modelName, { value:model, writable: false, enumerable: true });
 };
 
-_applicationMap.registerService = (serviceName, service) => {
+export const registerService = (serviceName, service) => {
     if(_service[serviceName]) throw(new Error('Service', serviceName, 'already registered!'));
     Object.defineProperty(_service, serviceName, { value:service, writable: false, enumerable: true });
 };
 
-_applicationMap.registerEvent = (eventsName, event) => {
+export const registerEvent = (eventsName, event) => {
     if(_events[eventsName]) throw(new Error('Event', eventsName, 'already registered!'));
     Object.defineProperty(_events, eventsName, { value:event, writable: false, enumerable: true });
 };
 
-_applicationMap.registerEventsByObject = eventsObject => {
+export const registerEventsByObject = eventsObject => {
     Object.keys(eventsObject).forEach(key => {
         if(_events[key]) throw(new Error('Event with key', key,'already registered!'));
         Object.defineProperty(_events, key, { value:eventsObject[key], writable: false, enumerable: true });
     });
 };
 
-_applicationMap.addComponentMixin = mixin => {
+export const addComponentMixin = mixin => {
     _componentMixins[_componentMixins.length] = mixin;
 };
 
-Object.defineProperties(_applicationMap, {
-    componentMixins: { get: () => _componentMixins },
-    loggingIsEnabled: { get: () => _loggingIsEnabled }
-});
-
-_applicationMap.doBefore = scope => {
+export const doBefore = scope => {
     if(_doBefore)
         throw new Error('Do before scope has already been set!');
     _doBefore = Scope();
     return scope(ChoiceWrapper(_doBefore));
 };
 
-_applicationMap.doAfter = scope => {
+export const doAfter = scope => {
     if(_doAfter)
         throw new Error('Do before scope has already been set!');
     _doAfter = Scope();
@@ -69,7 +64,7 @@ _applicationMap.doAfter = scope => {
 
 let _queue = [];
 
-_applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=false, skipAfter=false) => {
+export const on = (events, scope, isLoggable=true, isOnce=false, skipBefore=false, skipAfter=false) => {
     if(_.isString(events)) events = [events];
     if(!_.isArray(events)) throw new Error('"events" must be a string, or an array of strings!');
 
@@ -110,7 +105,7 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
 
         // TODO - can prob stop passing these obs into run now (apart from callback)
         parentScope.run(data, app, (data, app) => {
-            isLoggable && data.debug.log('COMPLETE |<--------------  ' + event)
+            isLoggable && data.debug.log('COMPLETE |<--------------  ' + event);
         });
 
     };
@@ -133,12 +128,25 @@ _applicationMap.on = (events, scope, isLoggable=true, isOnce=false, skipBefore=f
 };
 
 
-_applicationMap.enableLogging = () => {
+export const enableLogging = () => {
     _loggingIsEnabled = true;
 };
 
-_applicationMap.disableLogging = () => {
+export const disableLogging = () => {
     _loggingIsEnabled = false;
 };
 
-module.exports = _applicationMap;
+export default {
+  on,
+  doBefore,
+  doAfter,
+  registerEventsByObject,
+  addComponentMixin,
+  registerService,
+  registerEvent,
+  registerModel,
+  enableLogging,
+  disableLogging,
+  get componentMixins() { return  _componentMixins }, 
+  get loggingIsEnabled() { return  _loggingIsEnabled  }
+};

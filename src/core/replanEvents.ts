@@ -1,5 +1,3 @@
-'use strict';
-
-module.exports = {
+export default {
     APPLICATION_STARTED: 'replanEvents.APPLICATION_STARTED'
 };

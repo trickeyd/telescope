@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+
+    "module": "commonjs",
+    "jsx": "preserve",
+    "declaration": true,
+    "outDir": "./lib",
+    "strict": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/__tests__/*" 
+}

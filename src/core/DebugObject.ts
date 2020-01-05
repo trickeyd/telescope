@@ -1,7 +1,5 @@
-'use strict';
-
-let _               = require('lodash');
-let _nextJobIdNum   = 0;
+import _ from 'lodash';
+let _nextJobIdNum  = 0;
 
 let DebugObject = (data, isLoggable=true) => {
     let _DebugObject = {};
@@ -26,7 +24,7 @@ let DebugObject = (data, isLoggable=true) => {
             text:methodName,
             depth:data.debug.depth,
             guardResult:guardResult || null
-        }
+        };
     };
 
     _DebugObject.logStack = () => {
@@ -51,7 +49,7 @@ let DebugObject = (data, isLoggable=true) => {
         //const EVT_LENGTH = 30;
         //let eventStr = _.pad(event, EVT_LENGTH);
         //if(eventStr.length > EVT_LENGTH) eventStr = eventStr.substr(0, EVT_LENGTH-3) + '...';
-        let startingText = '|'+_.pad(_jobId, 15) + '|'// + eventStr + '|';
+        let startingText = '|'+_.pad(_jobId, 15) + '|';// + eventStr + '|';
         args.unshift(_.padEnd(startingText, (_depth + 1) * 4 + startingText.length));
         console.log.apply(null, args);
     };
@@ -62,4 +60,4 @@ let DebugObject = (data, isLoggable=true) => {
     return _DebugObject;
 };
 
-module.exports = DebugObject;
+export default DebugObject;

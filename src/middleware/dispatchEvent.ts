@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  *
  * @param event
@@ -15,4 +13,4 @@ let dispatchEvent = (event, payload) => {
     return dispatchEvent;
 };
 
-module.exports = dispatchEvent;
+export default dispatchEvent;

@@ -1,7 +1,5 @@
-'use strict';
-
-let _                   = require('lodash');
-let HashMap             = require('../HashMap');
+import _ from 'lodash';
+import HashMap from '../HashMap';
 let _proxyMap           = HashMap();
 let _interfacesByName   = Object.create(null);
 
@@ -18,9 +16,9 @@ let CallbackMultiSwitch = callback => {
 
                 _numCallbacksCalled++;
                 _numCallbacks === _numCallbacksCalled && callback();
-            }
+            };
         }
-    }
+    };
 };
 
 
@@ -189,11 +187,11 @@ let Interface = (name, methodNames) => {
     if(!_.isArray(methodNames))
         throw(new Error('Second argument of Interface must be an array of method names!'));
 
-    return { name, methodNames }
+    return { name, methodNames };
 };
 
 
-module.exports = {
+export default {
     registerInstance: (instance) => {
         _proxyMap.get(instance.constructor).addInstance(instance);
 
@@ -203,7 +201,7 @@ module.exports = {
             if (!proxy) throw(new Error('Interface has not been registered!'));
 
             proxy.addInstance(instance);
-        })
+        });
     },
 
     unregisterInstance: (instance) => {
@@ -215,7 +213,7 @@ module.exports = {
             if (!proxy) throw(new Error('Interface has not been registered!'));
 
             proxy.removeInstance(instance);
-        })
+        });
     },
 
     /**

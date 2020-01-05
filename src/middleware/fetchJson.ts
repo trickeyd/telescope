@@ -1,5 +1,3 @@
-'use strict';
-
 let Call = (data, isSuccess, body) => {
     return { data, isSuccess, body };
 };
@@ -64,4 +62,4 @@ let fetchJson = (url, body, method, headers, isSuccess) => {
 
 let defaultDetermineSuccess = res => res && res.ok && res.status >= 200 && res.status <= 299;
 
-module.exports = fetchJson;
+export default fetchJson;

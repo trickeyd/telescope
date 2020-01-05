@@ -1,6 +1,4 @@
-"use strict";
-
-module.exports = function HashMap () {
+export default function HashMap () {
     let _HashMap = {};
     let _keyArray = [];
     let _propertyArray = [];
