@@ -2,7 +2,7 @@ import DataObject from "./DataObject";
 import AppObject from "./AppObject";
 import emitter from "../globalEmitter";
 import { ChoiceWrapper } from './core';
-import { Scope } from'./core';
+import { InternalScope } from'./core';
 import _ from 'lodash';
 
 

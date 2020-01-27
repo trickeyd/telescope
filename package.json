@@ -5,10 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-    "lint": "tslint -p tsconfig.json" 
+    "lint": "tslint -p tsconfig.json",
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\""
   },
   "repository": {
     "type": "git",
@@ -20,17 +19,22 @@
     "framework",
     "application"
   ],
-  "files": ["lib/**/*"], 
+  "files": [
+    "lib/**/*"
+  ],
   "author": "James Trickey",
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "@types/jest": "^24.9.1",
+    "@types/lodash": "^4.14.149",
     "eslint": "^5.16.0",
+    "jest": "^25.1.0",
     "prettier": "^1.19.1",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.4"
+    "typescript": "^3.7.5"
   }
 }

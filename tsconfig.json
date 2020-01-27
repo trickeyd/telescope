@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es5",
-
+    "target": "es6",
     "module": "commonjs",
     "jsx": "preserve",
     "declaration": true,
     "outDir": "./lib",
-    "strict": false,
+    "strict": true,
+    "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__/*" 
+  "exclude": ["node_modules", "**/__tests__/*"] 
 }
