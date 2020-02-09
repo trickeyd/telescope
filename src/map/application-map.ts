@@ -15,7 +15,6 @@ let _model                  = {
                                   })
                               };
 
-// app object definitions
 export const registerModel = (modelName, model) => {
     if(_model[modelName]) throw(new Error('Model', modelName, 'already registered!'));
     Object.defineProperty(_model, modelName, { value:model, writable: false, enumerable: true });
@@ -38,9 +37,9 @@ export const registerEventsByObject = eventsObject => {
     });
 };
 
-export const addComponentMixin = mixin => {
+/*export const addComponentMixin = mixin => {
     _componentMixins[_componentMixins.length] = mixin;
-};
+};*/
 
 export const doBefore = scope => {
     if(_doBefore)

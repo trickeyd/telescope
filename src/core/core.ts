@@ -143,10 +143,12 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
               break
 
             case 2:
+              // normal sync/async middleware function
               await flowFunction(data, app)
               break
 
             case 3:
+              // middleware functions with a 'next' callback
               await new Promise(resolve => flowFunction(data, app, resolve))
               break
 
