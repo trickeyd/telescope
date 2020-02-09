@@ -1,16 +1,19 @@
-import DebugObject from './DebugObject';
+type DataMap = Map<string, any>
 
-interface Data {
-  scope: any
-  flow: any
+export interface Data {
+  flow: DataMap
+  scope: DataMap
   params: any
   event: string
 }
 
-export const createDataObject = (params=undefined, event=undefined, isLoggable=false) => ({
+export const createDataObject = ({ params, event, scope, flow }: Data): Data => {
+  const scopeData: DataMap = new Map(scope) 
+  return {
     get event() { return event },
-    get parmas() { return params },
-    get scope() { return scope },
+    get params() { return params },
+    get scope() { return scopeData },
     get flow() { return flow }
-})
+  }
+}
 

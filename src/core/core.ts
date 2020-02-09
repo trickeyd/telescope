@@ -1,16 +1,21 @@
-type FlowFunction = (arg1: any, arg2?: any, arg3?: any) => any
-type ScopeFunction = <T extends FlowFunction> (scope: any) => void 
-export type Middleware = <T  extends FlowFunction> (data: any, app: any, next?: any) => Promise<any> | void 
+import { App, createAppObject } from './app-object'
+import { Data, createDataObject } from './data-object'
 
-export type Guard = ((data: any, app: any) => boolean)
+/*------------------------------------------
+ * Types
+ ------------------------------------------------------------------------------*/  
+type FlowFunction = (arg1: any, arg2?: any, arg3?: any) => any
+type ScopeFunction = <T extends FlowFunction> (scope: Scope) => void 
+export type Middleware = <T  extends FlowFunction> (data: Data, app: App, next?: Function) => Promise<any> | void 
+
+export type Guard = (data: Data, app: App) => boolean
 
 interface Executable {
-  exec: (data: any, app: any) => Promise<any> 
+  exec: (data: Data, app: App) => Promise<any> 
 }
 
 export interface InternalScope extends Executable {
   addExec: (exec: Executable) => void
-  readonly event: string
   readonly depth: number
 }
 
@@ -46,24 +51,29 @@ type NonEmptyArray<T> = {
 export type Scope = StandardInterface
  
 
-export const createScope = (event: string, depth: number = 0): InternalScope => {
-  const executables: Executable[] = [];
+
+
+/*------------------------------------------
+ * Body
+ ------------------------------------------------------------------------------*/  
+export const createScope = (depth: number = 0): InternalScope => {
+  const executables: Executable[] = []
   return {
     addExec: (exec: Executable) => executables.push(exec),
-    exec: async (data: any, app: any) => {
+    exec: async (data: Data, app: App) => {
       for (const executable of executables){
-        await executable.exec(data, app)
+        await executable.exec(createDataObject(data), app)
       }
     },
-    get event() { return event },
     get depth() { return depth }
   }
 }
 
-export const createDo = (scope: InternalScope): Do => (...flowFunctions:  NonEmptyArray<FlowFunction>): StandardInterface => {
-  scope.addExec(Flow(scope)(flowFunctions))
-  return createStandardInterface(scope)
-}; 
+export const createDo = (scope: InternalScope): Do =>
+  (...flowFunctions:  NonEmptyArray<FlowFunction>): StandardInterface => {
+    scope.addExec(Flow(scope)(flowFunctions))
+    return createStandardInterface(scope)
+  } 
 
 export const createIf = (scope: InternalScope): If =>
   (...guards: NonEmptyArray<Guard>) =>
@@ -75,7 +85,8 @@ export const createIf = (scope: InternalScope): If =>
           for(const conditional of conditionalCases){
             const { guards, flowFunctions } = conditional
             if(guards.every(guard => guard(data, app))) {
-              const flow = Flow(createScope(scope.event, scope.depth + 1))(flowFunctions)
+              // TODO - make new objects for the scope
+              const flow = Flow(createScope(scope.depth + 1))(flowFunctions)
               await flow.exec(data, app) 
               break
             }
@@ -93,7 +104,7 @@ const addCondition = (scope: InternalScope, conditionalCases: ConditionalBlock[]
 
 const addElseCase = (scope: InternalScope, conditionalCases: ConditionalBlock[]) =>
   (...flowFunctions: NonEmptyArray<FlowFunction>): StandardInterface => {
-    conditionalCases.push({ guards: [ (data: any, app: any) => true ], flowFunctions })
+    conditionalCases.push({ guards: [ (data: Data, app: App) => true ], flowFunctions })
     return createStandardInterface(scope)
   }  
 
@@ -119,29 +130,31 @@ const createIfInterface = (scope: InternalScope, conditionalBlocks: ConditionalB
 
 const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunction>): Executable => {
   return {
-    exec: async (data: any, app: any) => {
+    exec: async (data: Data, app: App) => {
       for(const flowFunction of flowFunctions) {
         const numArgs = flowFunction.length
         try {
           switch (numArgs) {
             case 1:
-              const newScope: InternalScope = createScope(scope.event, scope.depth + 1)
+              const newScope: InternalScope = createScope(scope.depth + 1)
               flowFunction(createStandardInterface(newScope))
-              await newScope.exec(data, app);
-              break;
+              // make new objects for the scope
+              await newScope.exec(data, app)
+              break
 
             case 2:
-              await flowFunction(data, app);
-              break;
+              await flowFunction(data, app)
+              break
 
             case 3:
               await new Promise(resolve => flowFunction(data, app, resolve))
-              break;
+              break
 
             default:
               throw new Error('Reflow middleware must accept 1-3 arguments!')
           }
         } catch (err){
+          // TODO - log both reflow and js stacks
           throw err        
         }
       }
