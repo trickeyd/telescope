@@ -27,39 +27,30 @@ export enum PropertyType {
   array = 'array'
 }
 
-export interface SchemaType {
+export interface SchemaType<T> {
   (name: string): PropertyDescriptor
+  isRequired: () => T
+  validate: (validator: Validator) => T 
 }
  
 
-export interface IStr extends SchemaType {
-  isRequired: () => IStr
-  validate: (validator: Validator) => IStr
+export interface IStr extends SchemaType<IStr> {
 }
 
-export interface INum extends SchemaType  {
-  isRequired: () => INum
-  validate: (validator: Validator) => INum
+export interface INum extends SchemaType<INum> {
 }
 
-export interface IBool extends SchemaType  {
-  isRequired: () => IBool
+export interface IBool extends SchemaType<IBool> {
 }
 
-export interface IAny extends SchemaType  {
-  isRequired: () => IAny
-  validate: (validator: Validator) => IAny
+export interface IAny extends SchemaType<IAny> {
 } 
  
-export interface IArr extends SchemaType  {
-  isRequired: () => IArr
-  validate: (validator: Validator) => IArr
+export interface IArr extends SchemaType<IArr> {
 } 
 
-export interface IObj extends SchemaType  {
-  isRequired: () => IObj
-  validate: (validator: Validator) => IObj
+export interface IObj extends SchemaType<IObj> {
 } 
 
-export type SchemaConfig = { [key: string]: SchemaType }
-export type SchemaNode = SchemaType | SchemaConfig | SchemaConfig[]
+export type SchemaConfig = { [key: string]: SchemaType<any> }
+export type SchemaNode = SchemaType<any> | SchemaConfig | SchemaConfig[]

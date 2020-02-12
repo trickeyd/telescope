@@ -68,7 +68,8 @@ export const Bool = (): IBool => {
   return Object.assign(
     returnObject,
     {
-      isRequired: isRequired(returnObject, validators)
+      isRequired: isRequired(returnObject, validators),
+      validate: validate(returnObject, validators)  
     }
   )
 } 
@@ -125,12 +126,12 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyD
   if(isPlainObject(schemaNode))
     return (Obj(schemaNode as SchemaConfig))(name)
 
-  return (schemaNode as SchemaType)(name)
+  return (schemaNode as SchemaType<any>)(name)
 }
 
 const parseSchemaObject = (schemaConfig: SchemaConfig) =>
   Object.entries(schemaConfig).reduce(
-    (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaType]) => {
+    (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaType<any>]) => {
       acc[key] = parseSchemaNode(key, value)
       return acc 
     },
