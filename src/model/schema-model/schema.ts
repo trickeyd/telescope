@@ -16,7 +16,8 @@ import {
   PropertyType,
   SchemaType,
   PropertyDescriptor,
-  SchemaNode
+  SchemaNode,
+  IAny
 } from "./types";
 import { validateAll, isRequired, validate } from "./validation";
 
@@ -25,8 +26,8 @@ export interface Schema {
   readonly root: PropertyDescriptor
 }
 
-export const Any = (): IStr => {
-  const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isString(item), failMessage: "it's not a string"}]
+export const Any = (): IAny => {
+  const validators: Validator[] = []
   const returnObject = (name: string) => ({ name, type: PropertyType.string, validator: validateAll(validators) })
   return Object.assign(
     returnObject,
