@@ -17,108 +17,56 @@ import {
   SchemaType,
   PropertyDescriptor,
   SchemaNode,
-  IAny
+  IAny,
+  ValidationEnablerMapFactory,
+  ValidationEnablerMap,
+  SchemaNodeContent,
 } from "./types";
-import { validateAll, isRequired, validate } from "./validation";
+import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation } from "./validation";
 
 export interface Schema {
   get: (path: string) => PropertyDescriptor
   readonly root: PropertyDescriptor
 }
 
-export const Any = (): IAny => {
+
+const createSchemaType = <T extends unknown>(propType: PropertyType, content?: SchemaNodeContent, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
   const validators: Validator[] = []
-  const returnObject = (name: string) => ({ name, type: PropertyType.string, validator: validateAll(validators) })
-  return Object.assign(
+  const returnObject: SchemaType = (name: string) => ({ name, type: propType, content, validate: validateAll(validators) })
+  const validationEnablerMap = validationEnablerFactories.reduce(
+    (acc: ValidationEnablerMap<T>, cur: ValidationEnablerMapFactory) => ({ ...acc, ...cur(returnObject as T, validators) }),
+    {}
+  ) 
+  return Object.assign( 
     returnObject,
     {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators) 
+      ...validationEnablerMap 
     }
-  )
-}  
-
-export const Str = (): IStr => {
-  const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isString(item), failMessage: "it's not a string"}]
-  const returnObject = (name: string) => ({ name, type: PropertyType.string, validator: validateAll(validators) })
-  return Object.assign(
-    returnObject,
-    {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators) 
-    }
-  )
-} 
-
-export const Num = (): INum => {
-  const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isNumber(item),  failMessage: "it's not a number" }]
-  const returnObject = (name: string) => ({ name, type: PropertyType.number, validator: validateAll(validators) })
-  return Object.assign(
-    returnObject,
-    {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators) 
-    }
-  )
+  ) as T
 }
 
-export const Bool = (): IBool => {
-  const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isBoolean(item), failMessage: "it's not a boolean" }]
-  const returnObject = (name: string) => ({ name, type: PropertyType.boolean, validator: validateAll(validators) })
-  return Object.assign(
-    returnObject,
-    {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators)  
-    }
-  )
-} 
-
+export const Any = (): IAny => createSchemaType<IAny>(PropertyType.any, undefined, createCommonValidation(), createValidatorAdder())
+export const Str = (): IStr => createSchemaType<IStr>(PropertyType.string, undefined, createCommonValidation(isString, PropertyType.string), createValidatorAdder(), createLengthValidation() )
+export const Num = (): INum => createSchemaType<INum>(PropertyType.number, undefined, createCommonValidation(isNumber, PropertyType.number), createValidatorAdder())
+export const Bool = (): IBool => createSchemaType<IBool>(PropertyType.boolean, undefined, createCommonValidation(isBoolean, PropertyType.boolean))
 export const Arr = (contentSchema: SchemaConfig): IArr => {
   if(isUndefined(contentSchema))
-    throw new Error('The Arr SchemaType function requires a SchemaConfig.')
-
-  const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isArray(item), failMessage: "it's not an array" }]
-  const returnObject = (name: string) => ({
-    name,
-    type: PropertyType.array,
-    content: parseSchemaObject(contentSchema),
-    validator: validateAll(validators)
-  })
-  return Object.assign(
-    returnObject,
-    {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators) 
-    }
-  )
+    throw Error('The Arr SchemaType function requires a SchemaConfig.')
+  return createSchemaType<IArr>(PropertyType.array, parseSchemaObject(contentSchema), createCommonValidation(isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
 }
 
 export const Obj = (contentSchema: SchemaConfig): IObj => {
   if(isUndefined(contentSchema))
-    throw new Error('The Obj SchemaType funciton requires a SchemaConfig.')
-   
- const validators: Validator[] = [{ validate: (item: any) => isUndefined(item) || isPlainObject(item), failMessage: "it's not an object"} ]
-  const returnObject = (name: string) => ({
-    name,
-    type: PropertyType.object,
-    content: parseSchemaObject(contentSchema),
-    validator: validateAll(validators)
-  })
-  return Object.assign(
-    returnObject,
-    {
-      isRequired: isRequired(returnObject, validators),
-      validate: validate(returnObject, validators) 
-    }
-  ) 
+    throw Error('The Obj SchemaType function requires a SchemaConfig.')
+  
+  return createSchemaType<IObj>(PropertyType.object, parseSchemaObject(contentSchema), createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
 } 
 
 export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyDescriptor => {
   if(isArray(schemaNode)){
 
     if(schemaNode.length > 1)
-      throw new Error('Array shorthand in schema may only have one child')
+      throw Error('Array shorthand in schema may only have one child')
 
     return (Arr((schemaNode)[0]))(name) 
   }
@@ -126,12 +74,12 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyD
   if(isPlainObject(schemaNode))
     return (Obj(schemaNode as SchemaConfig))(name)
 
-  return (schemaNode as SchemaType<any>)(name)
+  return (schemaNode as SchemaType)(name)
 }
 
-const parseSchemaObject = (schemaConfig: SchemaConfig) =>
+const parseSchemaObject = (schemaConfig: SchemaConfig): SchemaNodeContent =>
   Object.entries(schemaConfig).reduce(
-    (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaType<any>]) => {
+    (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
       acc[key] = parseSchemaNode(key, value)
       return acc 
     },
@@ -139,11 +87,10 @@ const parseSchemaObject = (schemaConfig: SchemaConfig) =>
   )  
 
 const getProp = (pathSections: string[], propDescriptor: PropertyDescriptor): PropertyDescriptor => {
-  const pathProp = (pathSections.shift() as string).split('[')[0]
-  const prop = lodashGet(propDescriptor, 'content.' + pathProp)
+  const propPath = (pathSections.shift() as string).split('[')[0]
+  const prop = lodashGet(propDescriptor, 'content.' + propPath)
 
-  if(!prop)
-    throw new Error(`Property ${pathProp} does not exist on ${propDescriptor.name}.`)
+  if(!prop) throw Error(`Property "${propPath}" does not exist on "${propDescriptor.name}".`)
 
   return pathSections.length ? getProp(pathSections, prop) : prop
 } 

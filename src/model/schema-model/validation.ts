@@ -7,40 +7,113 @@ import {
   StringToAny,
   ValidateStoreAccumulator,
   SchemaNode,
+  ValidationEnablerMapFactory,
 } from "./types";
-import isUndefined from 'lodash.isUndefined'
+import isUndefined from 'lodash.isundefined'
+import isString from 'lodash.isstring'
+import isNull from 'lodash.isnull'
 
-export const isRequired = (returnObject: any, validators: Validator[]) =>
-  () => {
-    validators.push({ validate: (item) => !isUndefined(item), failMessage: 'undefined but marked required' })
-    return returnObject
+export const createCommonValidation = (validateType?: (item: any) => boolean, propType?: PropertyType): ValidationEnablerMapFactory =>
+  <T>(returnObject:T, validators: Validator[]) => {
+    let isRequired = false
+    let isNullable = false
+    validators.push((item) => {
+      if(isUndefined(item)) {
+        if(isRequired) 
+          return "it's undefined but marked as required"
+      }
+      else if(isNull(item)) {
+        if(!isNullable) 
+          return "it's null but not marked as nullable"
+      }
+      else if(validateType && !validateType(item))
+        return `it's not a ${propType}` 
+
+      return true
+    })  
+    return {
+      required: (): T => {
+        isRequired = true 
+        return returnObject
+      },
+      nullable: (): T => {
+        isNullable = true
+        return returnObject
+      }
+    }
   }
 
-export const validate = (returnObject: any, validators: Validator[]) =>
-  (validator: Validator) => {
+export const createLengthValidation = (): ValidationEnablerMapFactory =>
+  <T>(returnObject:T, validators: Validator[]) => {
+    let setLength: undefined | number
+    let minLength: undefined | number
+    let maxLength: undefined | number
+
+    validators.push((item) => {
+      const length = item.length
+
+      if(isUndefined(length))
+        return `it has no property 'length'`
+
+      if(!isUndefined(setLength) && length !== setLength)
+        return `it's length is ${length} but should be ${setLength}` 
+
+      if(!isUndefined(minLength) && length < minLength)
+        return `it's length is ${length} but should be more than ${--minLength}`
+
+      if(!isUndefined(maxLength) && length > maxLength)
+        return `it's length is ${length} but should be less than ${++maxLength}`
+     
+      return true
+    })
+
+    return {
+      setLength: (setLength: number): T => {
+        setLength = setLength 
+        return returnObject
+      },
+      minLength: (minLength: number): T => {
+        minLength = minLength 
+        return returnObject
+      },
+      maxLength: (maxLength: number): T => {
+        maxLength = maxLength 
+        return returnObject
+      }, 
+    }
+  }
+ 
+export const createValidatorAdder = (): ValidationEnablerMapFactory => <T>(returnObject: T, validators: Validator[]) => ({
+  validate: (validator: Validator): T => {
     validators.push(validator)
     return returnObject
-  } 
-
+  }
+})
  
 export const validateAll = (validators: Validator[]) => (item: any): MultiValidatorResult =>
-  validators.reduce((acc: MultiValidatorResult, validator: Validator): MultiValidatorResult => {
-      if(!validator.validate(item)){
-        acc.isValid = false
-        acc.failMessages.push(validator.failMessage)
-      }
-      return acc
-    },
-    { isValid: true, failMessages: [] }
-  )
+  validators.slice(0).reduce((acc: MultiValidatorResult, validate: Validator, i: number, arr: Validator[]): MultiValidatorResult => {
+    const validatorResult = validate(item) 
+    const isValid = validatorResult === true
+    isNull(item) || isUndefined(item) && arr.splice(1) 
+       
+    if(!isValid){
+      if(!isString(validatorResult))
+        throw Error('Validator function must return true or a string')
+
+      acc.isValid = false
+      acc.failMessage += `${i === 0 ? "failed because " : " and "}${validatorResult}`
+    }
+    return acc
+  },
+  { isValid: true, failMessage: "" }
+)
  
 export const validateStoreNodeDescriptor = (value: StringToAny, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
-  const { isValid, failMessages } = propDescriptor.validator(value) 
-  const result = isValid ? 'passed' : `failed because it is ${failMessages.join(' and ')}.`
+  const { isValid, failMessage } = propDescriptor.validate(value) 
+  const result = isValid ? 'passed' : failMessage
 
   if(isUndefined(value))
     return { isValid, validationMap: `${value} -> ${result}` }
-    
 
   switch(propDescriptor.type){
     case PropertyType.object:
@@ -64,6 +137,7 @@ export const validateStoreNodeDescriptor = (value: StringToAny, propDescriptor: 
 }
    
 const validateStoreObject = (store: StringToAny, schemaNode: SchemaNode): ValidateStoreResult => {
+  console.log('st', store)
   const { isValid, storeKeys, validationMap}: ValidateStoreAccumulator = Object.entries(schemaNode).reduce(
     (
       { isValid: storeIsValid, storeKeys, validationMap }: ValidateStoreAccumulator,
@@ -72,7 +146,8 @@ const validateStoreObject = (store: StringToAny, schemaNode: SchemaNode): Valida
       const { isValid: nodeIsValid, validationMap: nodeValidationMap } = validateStoreNodeDescriptor(store[key], propDescriptor)
       validationMap[key] = nodeValidationMap;
       
-      storeKeys.splice(storeKeys.indexOf(key), 1) 
+      const storeKeyIndex = storeKeys.indexOf(key) 
+      storeKeyIndex !== -1 && storeKeys.splice(storeKeyIndex, 1) 
 
       return {
         isValid: storeIsValid && nodeIsValid,
