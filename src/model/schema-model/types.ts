@@ -1,6 +1,7 @@
+import { StringToAny } from "../../types";
+ 
 export type Validator = (item: any) => true | string 
 export type MultiValidatorResult = { isValid: boolean, failMessage: string }
-export type StringToAny = { [key: string] : any } 
 
 export interface ValidateStoreResult {
   isValid: boolean,

@@ -24,12 +24,6 @@ import {
 } from "./types";
 import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation } from "./validation";
 
-export interface Schema {
-  get: (path: string) => PropertyDescriptor
-  readonly root: PropertyDescriptor
-}
-
-
 const createSchemaType = <T extends unknown>(propType: PropertyType, content?: SchemaNodeContent, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
   const validators: Validator[] = []
   const returnObject: SchemaType = (name: string) => ({ name, type: propType, content, validate: validateAll(validators) })
@@ -95,8 +89,13 @@ const getProp = (pathSections: string[], propDescriptor: PropertyDescriptor): Pr
   return pathSections.length ? getProp(pathSections, prop) : prop
 } 
 
+export interface Schema {
+  get: (path: string) => PropertyDescriptor
+  readonly root: PropertyDescriptor
+  readonly name: string
+}
  
-export const Schema = (schemaNode: SchemaNode): Schema => {
+export const Schema = (name: string, schemaNode: SchemaNode): Schema => {
   const parsedSchema = parseSchemaNode('root', schemaNode) 
 
   const get = (path: string): PropertyDescriptor => {
@@ -106,6 +105,7 @@ export const Schema = (schemaNode: SchemaNode): Schema => {
 
   return {
     get,
-    get root() { return parsedSchema }
+    get root() { return parsedSchema },
+    get name() { return name }
   }
 }

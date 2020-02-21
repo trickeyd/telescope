@@ -2,7 +2,7 @@
   "name": "@idiosync/replan",
   "version": "2.0.0",
   "description": "An application framework for react-native",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
@@ -23,9 +23,9 @@
     "lib/**/*"
   ],
   "jest": {
-    "testPathIgnorePatterns" : [
-      "<rootDir>/lib/" 
-    ], 
+    "testPathIgnorePatterns": [
+      "<rootDir>/lib/"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -48,7 +48,8 @@
     "lodash.isplainobject": "^4.0.6",
     "lodash.isstring": "^4.0.1",
     "lodash.isundefined": "^3.0.1",
-    "lodash.set": "^4.3.2"
+    "lodash.set": "^4.3.2",
+    "react": "^16.12.0"
   },
   "devDependencies": {
     "@types/jest": "^24.9.1",
@@ -62,6 +63,7 @@
     "@types/lodash.isstring": "^4.0.6",
     "@types/lodash.isundefined": "^3.0.6",
     "@types/lodash.set": "^4.3.6",
+    "@types/react": "^16.9.20",
     "eslint": "^5.16.0",
     "jest": "^25.1.0",
     "prettier": "^1.19.1",

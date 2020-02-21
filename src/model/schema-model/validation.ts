@@ -4,7 +4,6 @@ import {
   PropertyDescriptor,
   ValidateStoreResult,
   PropertyType,
-  StringToAny,
   ValidateStoreAccumulator,
   SchemaNode,
   ValidationEnablerMapFactory,
@@ -12,6 +11,7 @@ import {
 import isUndefined from 'lodash.isundefined'
 import isString from 'lodash.isstring'
 import isNull from 'lodash.isnull'
+import { StringToAny } from "../../types";
 
 export const createCommonValidation = (validateType?: (item: any) => boolean, propType?: PropertyType): ValidationEnablerMapFactory =>
   <T>(returnObject:T, validators: Validator[]) => {
