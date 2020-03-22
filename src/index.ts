@@ -1,16 +1,8 @@
 export { Provider } from './react/context'
 export { Schema, Num, Str, Obj, Arr, Any, Bool } from './model/schema-model'
-
-import { createModelFromSchema, Schema } from './model/schema-model'
-import { SchemaNode } from './model/schema-model/types'
-
-export const createReplanApp = (schemas: Schema[]) => {
-
-  const model: any = schemas.reduce((acc, cur) => ({ ...acc, [cur.name]: cur }), {})
-
-  const app = {
-    get model() { return model }
-  }
-
-}
-
+export { connect } from './react/connect'
+export { SchemaNode } from './model/schema-model/types'
+export { Signal } from "./signals/signal"
+export { App } from "./core/app-object"
+export { Data } from "./core/data-object"
+export { createApp } from "./map/application-map"

@@ -2,14 +2,15 @@ import lodashGet from 'lodash.get'
 import lodashSet from 'lodash.set'
 import has from 'lodash.has' 
 import { Schema } from "./schema";
-import { validateStoreNodeDescriptor } from "./validation";
+import { validateValueBySchemaNode } from "./validation";
+import { stringify } from "../../utils/strings";
 
 export const createModelFromSchema = (name: string, schema: Schema) => {
   let store = Object.create(null)
   let setHasBeenCalled = false
   
   const getProp = (path: string) => {
-    lodashGet(store, path)
+    return lodashGet(store, path)
   }
 
   const setProp = (path: string, value: any) => {
@@ -21,21 +22,22 @@ export const createModelFromSchema = (name: string, schema: Schema) => {
     lodashSet(store, path, value) 
 
     if(!setHasBeenCalled) {
-      const { isValid, validationMap } = validateStoreNodeDescriptor(store, schema.root)
+      const { isValid, validationMap } = validateValueBySchemaNode(store, schema.root)
 
       if(!isValid)
-        throw new Error(`Model validation failed:\n${JSON.stringify(validationMap, null, 2)}`)
+        throw new Error(`Model validation failed:\n${stringify(validationMap)}`)
     }
+    console.log('store', store)
 
   } 
 
   const set = (value: any) => {
     setHasBeenCalled = true
 
-    const { isValid, validationMap } = validateStoreNodeDescriptor(value, schema.root)
+    const { isValid, validationMap } = validateValueBySchemaNode(value, schema.root)
 
     if(!isValid)
-      throw Error(`Model "${name}" failed validation\n${JSON.stringify(validationMap, null, 2)}`)
+      throw Error(`Model "${name}" failed validation\n${stringify(validationMap)}`)
 
     store = value
   }

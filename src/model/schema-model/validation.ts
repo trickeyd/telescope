@@ -108,7 +108,7 @@ export const validateAll = (validators: Validator[]) => (item: any): MultiValida
   { isValid: true, failMessage: "" }
 )
  
-export const validateStoreNodeDescriptor = (value: StringToAny, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
+export const validateValueBySchemaNode = (value: StringToAny, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
   const { isValid, failMessage } = propDescriptor.validate(value) 
   const result = isValid ? 'passed' : failMessage
 
@@ -137,13 +137,12 @@ export const validateStoreNodeDescriptor = (value: StringToAny, propDescriptor: 
 }
    
 const validateStoreObject = (store: StringToAny, schemaNode: SchemaNode): ValidateStoreResult => {
-  console.log('st', store)
   const { isValid, storeKeys, validationMap}: ValidateStoreAccumulator = Object.entries(schemaNode).reduce(
     (
       { isValid: storeIsValid, storeKeys, validationMap }: ValidateStoreAccumulator,
       [key, propDescriptor]: [string, PropertyDescriptor]
     ) => {
-      const { isValid: nodeIsValid, validationMap: nodeValidationMap } = validateStoreNodeDescriptor(store[key], propDescriptor)
+      const { isValid: nodeIsValid, validationMap: nodeValidationMap } = validateValueBySchemaNode(store[key], propDescriptor)
       validationMap[key] = nodeValidationMap;
       
       const storeKeyIndex = storeKeys.indexOf(key) 

@@ -1,12 +1,14 @@
 import { App, createAppObject } from './app-object'
 import { Data, createDataObject } from './data-object'
+import { createDebugObject } from "../debug/debug-object";
 
 /*------------------------------------------
  * Types
  ------------------------------------------------------------------------------*/  
-type FlowFunction = (arg1: any, arg2?: any, arg3?: any) => any
-type ScopeFunction = <T extends FlowFunction> (scope: Scope) => void 
-export type Middleware = <T  extends FlowFunction> (data: Data, app: App, next?: Function) => Promise<any> | void 
+export type ScopeFunction = (scope: Scope) => void 
+export type Middleware = (data: Data, app: App) => Promise<any> | void 
+export type CallbackMiddleware = (data: Data, app: App, next: Function) => void 
+type FlowFunction = CallableFunction | Middleware | ScopeFunction
 
 export type Guard = (data: Data, app: App) => boolean
 
@@ -62,7 +64,8 @@ export const createScope = (depth: number = 0): InternalScope => {
     addExec: (exec: Executable) => executables.push(exec),
     exec: async (data: Data, app: App) => {
       for (const executable of executables){
-        await executable.exec(createDataObject(data), app)
+        const debug = createDebugObject(app.debug.jobId, depth, app.debug.stack) 
+        await executable.exec(createDataObject(data), createAppObject(app.model, app.service, debug ))
       }
     },
     get depth() { return depth }
@@ -137,19 +140,20 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
           switch (numArgs) {
             case 1:
               const newScope: InternalScope = createScope(scope.depth + 1)
-              flowFunction(createStandardInterface(newScope))
+              const standardInterface: StandardInterface = createStandardInterface(newScope); 
+              (flowFunction as ScopeFunction)(standardInterface)
               // make new objects for the scope
               await newScope.exec(data, app)
               break
 
             case 2:
               // normal sync/async middleware function
-              await flowFunction(data, app)
+              await (flowFunction as Middleware)(data, app)
               break
 
             case 3:
               // middleware functions with a 'next' callback
-              await new Promise(resolve => flowFunction(data, app, resolve))
+              await new Promise(resolve => (flowFunction as CallbackMiddleware)(data, app, resolve))
               break
 
             default:

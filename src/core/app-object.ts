@@ -1,18 +1,18 @@
+import { Schema } from "../model/schema-model/schema";
+import { createModelFromSchema } from "../model/schema-model/model";
+import { Debug } from "../debug/debug-object";
+ 
 export interface App {
-  model: any
-  service: any
-  events: any
-  emitter: any
-  debug: any
+  readonly model: any
+  readonly service: any
+  readonly log: any
+  readonly debug: Debug
 } 
 
-export const createAppObject = (): App => ({
-  get model() { return {} },
-  get service() { return {} },
-  get events() { return {} },
-  get emitter() { return {} },
-  get debug() { return {} }
-  /*
-  getProxyByType: { writable: false, enumerable: true, value: proxies.getProxyByType },
-  getInstanceByType: { writable: false, enumerable: true, value: proxies.getInstanceByType },*/
+export const createAppObject = (model: any, service: any, debug: any): App => ({
+  get model() { return model },
+  get service() { return service },
+  get log() { return debug.log },
+  get debug() { return debug },
 })
+

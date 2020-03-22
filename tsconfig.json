@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "jsx": "preserve",
+    "jsx": "react",
     "declaration": true,
     "outDir": "./lib",
     "strict": true,

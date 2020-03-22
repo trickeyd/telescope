@@ -96,7 +96,7 @@ export interface Schema {
 }
  
 export const Schema = (name: string, schemaNode: SchemaNode): Schema => {
-  const parsedSchema = parseSchemaNode('root', schemaNode) 
+  const parsedSchema = parseSchemaNode(name, schemaNode) 
 
   const get = (path: string): PropertyDescriptor => {
     const pathSections = path.split('.') 

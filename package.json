@@ -1,12 +1,12 @@
 {
   "name": "@idiosync/replan",
-  "version": "2.0.0",
+  "version": "2.0.0-alpha.3",
   "description": "An application framework for react-native",
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
-    "test": "jest",
+    "test": "jest src",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\""
   },
   "repository": {

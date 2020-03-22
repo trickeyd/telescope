@@ -2,26 +2,31 @@ import React, { ComponentType } from 'react'
 import { Consumer } from './context'
 import { ComponentWrapper } from "./ComponentWrapper";
 import { StringToAny } from "../types";
+import { Signal } from "../signals/signal";
 
 interface App {
-  modal: Object
+  model: Object
   emit: Function
 }
 
-export const connect = (mapStateToProps: () => Object, mapDispatchToProps: () => Object) =>
-  (Component: ComponentType<any>) => (props: StringToAny) => (
-    <Consumer>{
-      (app) => (
-        <ComponentWrapper
-          Component={Component}
-          passedProps={props}
-          app={app}
-          mapStateToProps={mapStateToProps}
-          mapDispatchToProps={mapDispatchToProps}
-        />
-      )
-    }</Consumer>
-  )
+export const connect = (
+  mapStateToProps: (modal: any) => StringToAny,
+  mapDispatchToProps: () => { [key: string]: Signal<any>
+}) =>
+  (Component: ComponentType<any>) =>
+    (props: StringToAny) => (
+      <Consumer>{
+        (app) => (
+          <ComponentWrapper
+            Component={Component}
+            passedProps={props}
+            app={app}
+            mapStateToProps={mapStateToProps}
+            mapDispatchToProps={mapDispatchToProps}
+          />
+        )
+      }</Consumer>
+    )
 
 
 /*export default function connect(ReactComponent){

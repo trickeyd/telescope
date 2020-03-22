@@ -1,63 +1,58 @@
-import _ from 'lodash';
-let _nextJobIdNum  = 0;
+import { Data } from "../core/data-object";
+ 
+interface StackItem {
+  functionName: string
+  guardResult: boolean | null
+  depth: number
+}
 
-let DebugObject = (data, isLoggable=true) => {
-    let _DebugObject = {};
+const createSpace = (length: number) => new Array(length).join(' ') 
 
-    let _stack = [];
-    let _depth = 0;
-    let _isLoggable = isLoggable;
-    let _currentDebugString = null;
-    let _jobId = 'j:' + _nextJobIdNum++;
-
-    Object.defineProperties(_DebugObject, {
-        overrideMethodName:{ value : string => _currentDebugString = string },
-        deleteOverrideMethodName:{ value : () => _currentDebugString = null },
-        debugString: {  get: () => _currentDebugString },
-        stack: { get : () => _stack },
-        depth: { get : () => _depth },
-        isLoggable:  { get : () => _isLoggable }
-    });
-
-    _DebugObject.addToStack = (methodName, guardResult) => {
-        _stack[_stack.length] = {
-            text:methodName,
-            depth:data.debug.depth,
-            guardResult:guardResult || null
-        };
+const addToStack = (stack: StackItem[]) =>
+  (functionName: string, depth: number, guardResult: boolean | null = null) => {
+    stack[stack.length] = {
+      functionName,
+      depth,
+      guardResult
     };
+  };
 
-    _DebugObject.logStack = () => {
-        let logString = '';
-        _stack.forEach(stackInfo => {
-            let isGuard = stackInfo.guardResult !== null;
-            let displayedDepth = isGuard ? stackInfo.depth : stackInfo.depth;
-            let str = stackInfo.text;
-            let indent = new Array(displayedDepth * 4 + 1).join(' ');
-
-            if(isGuard) str = 'if(' + str +')   ('+stackInfo.guardResult+')';
-
-            str = indent + str;
-
-            logString += str + '\n';
-        });
-        console.log(logString);
-    };
-
-    _DebugObject.log = (...args) => {
-        //let event       = data.event;
-        //const EVT_LENGTH = 30;
-        //let eventStr = _.pad(event, EVT_LENGTH);
-        //if(eventStr.length > EVT_LENGTH) eventStr = eventStr.substr(0, EVT_LENGTH-3) + '...';
-        let startingText = '|'+_.pad(_jobId, 15) + '|';// + eventStr + '|';
-        args.unshift(_.padEnd(startingText, (_depth + 1) * 4 + startingText.length));
-        console.log.apply(null, args);
-    };
-
-    _DebugObject.increaseDepth = () => _depth++;
-    _DebugObject.decreaseDepth = () => _depth--;
-
-    return _DebugObject;
+const logStack = (stack: StackItem[]) => () => {
+  const logString = '';
+  stack.forEach((stackItem: StackItem) => {
+    const isGuard = stackItem.guardResult !== null;
+    const str = createSpace(stackItem.depth * 2 + 1) + (
+      isGuard
+        ? `if(${stackItem.functionName}) == ${stackItem.guardResult}`
+        : stackItem.functionName
+    ) + "\n"
+  })
+  console.log(logString)
+};
+ 
+const log = (jobId: string, depth: number) => (...args: any[]) => {
+  let startingText = `|${createSpace(15)}${jobId}|`
+    console.log('ll',depth) 
+  console.log(`${startingText}${createSpace((depth + 1) * 2 + startingText.length)}`,...args)
 };
 
-export default DebugObject;
+export interface Debug {
+  addToStack: (functionName: string, depth: number, guardResult: boolean | null) => void
+  logStack: () => void
+  log: (depth: number, ...args: any[]) => void
+  jobId: string,
+  stack: StackItem[]
+  depth: number
+} 
+ 
+export const createDebugObject = (jobId: string, depth: number, stack: StackItem[] = []): Debug => {
+  return {
+    addToStack: addToStack(stack),
+    logStack: logStack(stack),
+    log: log(jobId, depth),
+    get jobId() { return jobId },
+    get stack() { return stack },
+    get depth() { return depth },
+  }
+};
+

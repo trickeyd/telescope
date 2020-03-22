@@ -1,3 +1,4 @@
+import { createAppObject } from "./app-object";
 import {
   createStandardInterface,
   createScope,
@@ -13,7 +14,8 @@ import {
   Scope
 } from './core'
 import { Data, createDataObject } from "./data-object";
-import { App, createAppObject } from "./app-object";
+import { App } from "./app-object";
+import { createDebugObject } from "../debug/debug-object";
 
 describe('core', () => {
   let scope: InternalScope
@@ -26,8 +28,8 @@ describe('core', () => {
     scope = createScope(0)
     middleware = jest.fn((data: Data, app: App) => {})
     trueGuard = jest.fn((data: Data, app: App) => true)
-    data = createDataObject({ params: { thing: 'thing' }, event: 'SOME_EVENT', scope: new Map(), flow: new Map() })
-    app = createAppObject()
+    data = createDataObject({ payload: { thing: 'thing' }, signal: 'SOME_EVENT', scope: new Map(), flow: new Map() })
+    app = createAppObject({}, {}, createDebugObject('test', 1))
   })
  
   describe('when using do wrapped scope', () => {
@@ -210,7 +212,7 @@ describe('core', () => {
 
     describe('when dealing with embedded scopes', () => {
       const numberUpdater = (id: number) => (data: Data, app: App) => ids.push(id)
-      const numberUpdaterWithDelay = (id: number) => (data: Data, app: App, next: any) => setTimeout(() => {
+      const numberUpdaterWithDelay = (id: number) => (data: Data, app: App, next: Function) => setTimeout(() => {
           ids.push(id)
           next()
         }, 20)
@@ -218,7 +220,7 @@ describe('core', () => {
         numberUpdaterWithDelay(3),
         numberUpdater(4)
       ))
-      const paramPusher = (data: Data, app: App) => params.push(data.params.thing)
+      const paramPusher = (data: Data, app: App) => params.push(data.payload.thing)
       const scopeDataAdder = (name: string) => (data: Data, app: App) => data.scope.set(name, true)
       const scopeDataExistsPusher = (name: string) => (data: Data, app: App) => scopeDataExist.push(!!data.scope.get(name))
       const flowDataAdder = (name: string) => (data: Data, app: App) => data.flow.set(name, true)
