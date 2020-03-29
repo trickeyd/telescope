@@ -27,7 +27,7 @@ import { Signal } from "../../signals/signal";
 
 const createSchemaType = <T extends unknown>(propType: PropertyType, contentSchema?: SchemaConfig, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
   const validators: Validator[] = []
-  const updated: Signal<unknown> = Signal(`PROPERTY_UPDATED`)
+  const updated: Signal<unknown> = Signal()
   const content = contentSchema ? parseSchemaObject(contentSchema, updated) : undefined; 
   const returnObject: SchemaType = (name: string) => ({ name, type: propType, updated, content, validate: validateAll(validators) })
   const validationEnablerMap = validationEnablerFactories.reduce(

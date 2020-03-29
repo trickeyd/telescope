@@ -5,5 +5,5 @@ export { SchemaNode } from './model/schema-model/types'
 export { Signal } from "./signals/signal"
 export { App } from "./core/app-object"
 export { Data } from "./core/data-object"
-export { createApp } from "./map/application-map"
+export { createTelescope } from "./map/application-map"
 export * from "./react/hooks"

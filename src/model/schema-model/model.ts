@@ -21,7 +21,6 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
     // TODO - throw if not found
     // TODO - clone
     const value = lodashGet(store, path)
-    console.log({value})
     return value
   }
 
@@ -41,8 +40,6 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
       if(!isValid)
         throw new Error(`Model validation failed:\n${stringify(validationMap)}`)
     }
-    console.log('store', store)
-
   } 
 
   const set = (value: any) => {

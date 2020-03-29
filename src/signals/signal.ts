@@ -3,15 +3,13 @@ import { SchemaNode } from "../model/schema-model/types";
 import { validateValueBySchemaNode } from "../model/schema-model/validation";
 import { stringify } from "../utils/strings";
 
-export type SignalLoad<T> = { signal: string, payload: T } 
-
 export interface Signal<T = undefined>  {
-  add: (listener: (signal: SignalLoad<T>) => void) => void
+  add: (listener: (payload: T) => void) => void
   dispatch: (payload?: T) => void
 }
 
-export const Signal = <T extends any = undefined>(signal: string, schemaNode?: SchemaNode): Signal<T> => {
-  const parsedSchemaNode = schemaNode ? parseSchemaNode('root', schemaNode) : undefined
+export const Signal = <T extends any = undefined>(schemaNode?: SchemaNode): Signal<T> => {
+  const parsedSchemaNode = schemaNode ? parseSchemaNode('signal', schemaNode) : undefined
   const listeners: Function[] = []
 
   return {
@@ -22,9 +20,9 @@ export const Signal = <T extends any = undefined>(signal: string, schemaNode?: S
         : { isValid : true, validationMap: {} } 
 
       if(!isValid)
-        throw Error(`Signal ${signal} has invalid payload\n${stringify(validationMap)}`) 
+        throw Error(`Signal has invalid payload\n${stringify(validationMap)}`) 
 
-      listeners.forEach(listener => listener({ signal, payload }))
+      listeners.forEach(listener => listener(payload))
     }
   }
 }

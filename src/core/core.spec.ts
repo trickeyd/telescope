@@ -28,7 +28,7 @@ describe('core', () => {
     scope = createScope(0)
     middleware = jest.fn((data: Data, app: App) => {})
     trueGuard = jest.fn((data: Data, app: App) => true)
-    data = createDataObject({ payload: { thing: 'thing' }, signal: 'SOME_EVENT', scope: new Map(), flow: new Map() })
+    data = createDataObject({ payload: { thing: 'thing' }, trigger: 'SOME_EVENT', scope: new Map(), flow: new Map() })
     app = createAppObject({}, {}, createDebugObject('test', 1))
   })
  
