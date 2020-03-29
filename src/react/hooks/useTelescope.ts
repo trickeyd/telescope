@@ -1,15 +1,15 @@
 import { useContext } from 'react'
-import { App } from "../../core/app-object";
 import { TelescopeContext } from "../context";
+import { Telescope } from "../../map/application-map";
 
-export const useApp = (): App => {
-  const app: App | null = useContext(TelescopeContext);
+export const useTelescope = (): Telescope => {
+  const telescope: Telescope | null = useContext(TelescopeContext);
 
-  if (app === null) {
+  if (telescope === null) {
     throw new Error(
       'could not find telescope context value; please ensure the component is wrapped in <Provider>'
     )
   }
 
-  return app;  
+  return telescope;
 }
