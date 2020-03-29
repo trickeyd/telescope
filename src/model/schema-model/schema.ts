@@ -23,10 +23,13 @@ import {
   SchemaNodeContent,
 } from "./types";
 import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation } from "./validation";
+import { Signal } from "../../signals/signal";
 
-const createSchemaType = <T extends unknown>(propType: PropertyType, content?: SchemaNodeContent, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
+const createSchemaType = <T extends unknown>(propType: PropertyType, contentSchema?: SchemaConfig, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
   const validators: Validator[] = []
-  const returnObject: SchemaType = (name: string) => ({ name, type: propType, content, validate: validateAll(validators) })
+  const updated: Signal<unknown> = Signal(`PROPERTY_UPDATED`)
+  const content = contentSchema ? parseSchemaObject(contentSchema, updated) : undefined; 
+  const returnObject: SchemaType = (name: string) => ({ name, type: propType, updated, content, validate: validateAll(validators) })
   const validationEnablerMap = validationEnablerFactories.reduce(
     (acc: ValidationEnablerMap<T>, cur: ValidationEnablerMapFactory) => ({ ...acc, ...cur(returnObject as T, validators) }),
     {}
@@ -46,14 +49,14 @@ export const Bool = (): IBool => createSchemaType<IBool>(PropertyType.boolean, u
 export const Arr = (contentSchema: SchemaConfig): IArr => {
   if(isUndefined(contentSchema))
     throw Error('The Arr SchemaType function requires a SchemaConfig.')
-  return createSchemaType<IArr>(PropertyType.array, parseSchemaObject(contentSchema), createCommonValidation(isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
+  return createSchemaType<IArr>(PropertyType.array, contentSchema, createCommonValidation(isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
 }
 
 export const Obj = (contentSchema: SchemaConfig): IObj => {
   if(isUndefined(contentSchema))
     throw Error('The Obj SchemaType function requires a SchemaConfig.')
   
-  return createSchemaType<IObj>(PropertyType.object, parseSchemaObject(contentSchema), createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
+  return createSchemaType<IObj>(PropertyType.object, contentSchema, createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
 } 
 
 export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyDescriptor => {
@@ -71,10 +74,12 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyD
   return (schemaNode as SchemaType)(name)
 }
 
-const parseSchemaObject = (schemaConfig: SchemaConfig): SchemaNodeContent =>
+// any parent child interaction should be done here
+const parseSchemaObject = (schemaConfig: SchemaConfig, updateParent?: Signal<unknown>): SchemaNodeContent =>
   Object.entries(schemaConfig).reduce(
     (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
-      acc[key] = parseSchemaNode(key, value)
+      const node = acc[key] = parseSchemaNode(key, value)
+      updateParent && node.updated.add(updateParent.dispatch)
       return acc 
     },
     {}

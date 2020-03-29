@@ -1,4 +1,5 @@
 import { StringToAny } from "../../types";
+import { Signal } from "../../signals/signal";
  
 export type Validator = (item: any) => true | string 
 export type MultiValidatorResult = { isValid: boolean, failMessage: string }
@@ -17,7 +18,8 @@ export interface PropertyDescriptor {
   name:string
   type: PropertyType,
   validate: (item: any) => MultiValidatorResult,
-  content?: any
+  content?: any,
+  updated: Signal<unknown>
 } 
 
 export enum PropertyType {

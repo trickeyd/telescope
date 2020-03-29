@@ -40,7 +40,7 @@ export const createApp = (schemas: Schema[]) => {
     on: (signal: Signal<unknown> | Signal<unknown>[], scopeFunction: ScopeFunction): void => {
       const signals = Array.isArray(signal) ? signal : [signal]
       signals.forEach(sig => sig.add(runScope(scopeFunction)))
-    } 
+    }, model 
   }
 }
 

@@ -5,26 +5,26 @@ import { stringify } from "../utils/strings";
 
 export type SignalLoad<T> = { signal: string, payload: T } 
 
-export interface Signal<T>  {
+export interface Signal<T = undefined>  {
   add: (listener: (signal: SignalLoad<T>) => void) => void
-  dispatch: (payload: T) => void
+  dispatch: (payload?: T) => void
 }
 
-export const Signal = <T extends any>(type: string, schemaNode?: SchemaNode): Signal<T> => {
+export const Signal = <T extends any = undefined>(signal: string, schemaNode?: SchemaNode): Signal<T> => {
   const parsedSchemaNode = schemaNode ? parseSchemaNode('root', schemaNode) : undefined
   const listeners: Function[] = []
 
   return {
     add: listener => listeners.push(listener),
     dispatch: payload => {
-      const { isValid, validationMap } = parsedSchemaNode
+      const { isValid, validationMap } = parsedSchemaNode 
         ? validateValueBySchemaNode(payload, parsedSchemaNode)
-        : { isValid : false, validationMap: {} } 
+        : { isValid : true, validationMap: {} } 
 
       if(!isValid)
-        throw Error(`Signal ${type} has invalid payload\n${stringify(validationMap)}`) 
+        throw Error(`Signal ${signal} has invalid payload\n${stringify(validationMap)}`) 
 
-      listeners.forEach(listener => listener({ type, payload }))
+      listeners.forEach(listener => listener({ signal, payload }))
     }
   }
 }

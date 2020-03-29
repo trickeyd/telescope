@@ -106,9 +106,9 @@ export const validateAll = (validators: Validator[]) => (item: any): MultiValida
     return acc
   },
   { isValid: true, failMessage: "" }
-)
- 
-export const validateValueBySchemaNode = (value: StringToAny, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
+  )
+
+export const validateValueBySchemaNode = (value: any, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
   const { isValid, failMessage } = propDescriptor.validate(value) 
   const result = isValid ? 'passed' : failMessage
 
