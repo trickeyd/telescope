@@ -31,8 +31,11 @@ const logStack = (stack: StackItem[]) => () => {
 };
  
 const log = (jobId: string, depth: number) => (...args: any[]) => {
-  let startingText = `|${createSpace(15)}${jobId}|`
-  console.log(`${startingText}${createSpace((depth + 1) * 2 + startingText.length)}`,...args)
+  const spaceBefore =  Math.ceil((14 - jobId.length) / 2)
+  const spaceAfter =  Math.floor((14 - jobId.length) / 2)
+
+  let startingText = `|${createSpace(spaceBefore)}${jobId}${createSpace(spaceAfter)} |`
+  console.log(`${startingText}${createSpace((depth + 1) * 2)}`,...args)
 };
 
 export interface Debug {

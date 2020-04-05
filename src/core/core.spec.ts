@@ -29,7 +29,7 @@ describe('core', () => {
     middleware = jest.fn((data: Data, app: App) => {})
     trueGuard = jest.fn((data: Data, app: App) => true)
     data = createDataObject({ payload: { thing: 'thing' }, trigger: 'SOME_EVENT', scope: new Map(), flow: new Map() })
-    app = createAppObject({}, {}, createDebugObject('test', 1))
+    app = createAppObject({}, {}, createDebugObject('test', 1), {})
   })
  
   describe('when using do wrapped scope', () => {

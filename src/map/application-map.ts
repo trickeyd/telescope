@@ -5,6 +5,7 @@ import { App, createAppObject } from "../core/app-object";
 import { Debug, createDebugObject } from "../debug/debug-object";
 import { Schema } from "../model/schema-model/schema";
 import { createModelFromSchema } from "../model/schema-model/model";
+import { Relay } from "../signals/relay";
 
 type SignalMap = { [key: string]: Signal<unknown> }
 type SignalConfig = { trigger: string, signal: Signal<unknown> } 
@@ -12,13 +13,18 @@ type SignalConfigMap = { [key: string]: SignalConfig }
 export type SignalGroupFetcher = (signals: SignalConfigMap) => SignalConfig | SignalConfig[]
 export type SignalFetcher = (signals: SignalConfigMap) => SignalConfig
 
+export type RelayMap = { [key: string]: Relay }
+export type RelayFetcher = (signals: RelayMap) => Relay
+ 
+
 export interface Telescope {
   on: (signalFetcher: SignalGroupFetcher, scopeFunction: ScopeFunction) => void
   model: any
   signalConfigMap: SignalConfigMap
+  relayMap: RelayMap
 }
 
-export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[]): Telescope => {
+export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[], relayMaps: RelayMap[]): Telescope => {
   const model: any = schemas.reduce((acc, cur) => {
     acc.set(cur.name, createModelFromSchema(cur.name,  cur))
     return acc
@@ -34,6 +40,16 @@ export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[]): Tel
     ),
     {}
   )
+
+  const relayMap = relayMaps.reduce((relayMapOut: RelayMap, relayMapIn: RelayMap) =>
+      Object.entries(relayMapIn).reduce((acc, [key, value]: [string, Relay]) => {
+        if(acc.key) throw new Error(`Multiple Relays have been applied to the key ${key}`)
+        return { ...acc, [key]: value }
+      },
+      relayMapOut
+    ),
+    {} 
+  ) 
   
   let numberOfJobs: number = 0;
 
@@ -42,9 +58,9 @@ export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[]): Tel
 
     const START_DEPTH = 0;
     
-    const debug: Debug = createDebugObject(`j:$${numberOfJobs++}`, START_DEPTH)
+    const debug: Debug = createDebugObject(`j:${numberOfJobs++}`, START_DEPTH)
     const data = createDataObject({ trigger, payload, scope: new Map(), flow: new Map()})
-    const app = createAppObject(model, {}, debug)
+    const app = createAppObject(model, {}, debug, relayMap)
        
     const scope: InternalScope = createScope(START_DEPTH);
 
@@ -64,7 +80,8 @@ export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[]): Tel
       signalConfigs.forEach(config => config.signal.add(runScope(config.trigger, scopeFunction)))
     },
     model,
-    signalConfigMap
+    signalConfigMap,
+    relayMap
   }
 }
 

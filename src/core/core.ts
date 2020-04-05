@@ -65,7 +65,10 @@ export const createScope = (depth: number = 0): InternalScope => {
     exec: async (data: Data, app: App) => {
       for (const executable of executables){
         const debug = createDebugObject(app.debug.jobId, depth, app.debug.stack) 
-        await executable.exec(createDataObject(data), createAppObject(app.model, app.service, debug ))
+        await executable.exec(
+          createDataObject(data),
+          createAppObject(app.model, app.service, debug, app.relays)
+        )
       }
     },
     get depth() { return depth }
@@ -142,16 +145,19 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
               const newScope: InternalScope = createScope(scope.depth + 1)
               const standardInterface: StandardInterface = createStandardInterface(newScope); 
               (flowFunction as ScopeFunction)(standardInterface)
-              // make new objects for the scope
+              app.log(`scope => ${flowFunction.name}`)
               await newScope.exec(data, app)
               break
 
             case 2:
+              app.log(`func: ${flowFunction.name}`)
+   
               // normal sync/async middleware function
               await (flowFunction as Middleware)(data, app)
               break
 
             case 3:
+              app.log(`func: ${flowFunction.name}`)
               // middleware functions with a 'next' callback
               await new Promise(resolve => (flowFunction as CallbackMiddleware)(data, app, resolve))
               break
@@ -159,6 +165,7 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
             default:
               throw new Error('Reflow middleware must accept 1-3 arguments!')
           }
+
         } catch (err){
           // TODO - log both reflow and js stacks
           throw err        

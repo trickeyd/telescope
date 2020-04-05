@@ -32,7 +32,7 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
       throw Error(`Model '${name}' failed validation of property '${path}' with value '${value}'.`)
 
     lodashSet(store, path, value) 
-    descriptor.updated.dispatch(value)
+    descriptor.updated.emit(value)
 
     if(!setHasBeenCalled) {
       const { isValid, validationMap } = validateValueBySchemaNode(store, schema.root)

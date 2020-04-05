@@ -8,6 +8,6 @@ export const useSignal = (signalFetcher: SignalFetcher) => {
   const signalConfigMap = telescope.signalConfigMap
   const signalConfig = signalFetcher(signalConfigMap)
 
-  return signalConfig.signal.dispatch
+  return signalConfig.signal.emit
 }
 

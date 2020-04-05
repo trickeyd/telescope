@@ -5,7 +5,7 @@ import { stringify } from "../utils/strings";
 
 export interface Signal<T = undefined>  {
   add: (listener: (payload: T) => void) => void
-  dispatch: (payload?: T) => void
+  emit: (payload?: T) => void
 }
 
 export const Signal = <T extends any = undefined>(schemaNode?: SchemaNode): Signal<T> => {
@@ -14,7 +14,7 @@ export const Signal = <T extends any = undefined>(schemaNode?: SchemaNode): Sign
 
   return {
     add: listener => listeners.push(listener),
-    dispatch: payload => {
+    emit: payload => {
       const { isValid, validationMap } = parsedSchemaNode 
         ? validateValueBySchemaNode(payload, parsedSchemaNode)
         : { isValid : true, validationMap: {} } 

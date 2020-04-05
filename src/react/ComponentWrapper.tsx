@@ -25,7 +25,7 @@ export const ComponentWrapper = ({
   const mappedDispatch = mapDispatchToProps()
 
   const parsedMappedDispatch = Object.entries(mappedDispatch).reduce(
-    (acc, [ key, signal ]) => ({ ...acc, [key]: signal.dispatch }),
+    (acc, [ key, signal ]) => ({ ...acc, [key]: signal.emit }),
     {}
   )
 
