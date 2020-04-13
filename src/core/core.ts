@@ -139,36 +139,30 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
     exec: async (data: Data, app: App) => {
       for(const flowFunction of flowFunctions) {
         const numArgs = flowFunction.length
-        try {
-          switch (numArgs) {
-            case 1:
-              const newScope: InternalScope = createScope(scope.depth + 1)
-              const standardInterface: StandardInterface = createStandardInterface(newScope); 
-              (flowFunction as ScopeFunction)(standardInterface)
-              app.log(`scope => ${flowFunction.name}`)
-              await newScope.exec(data, app)
-              break
+        const requiresCallback = numArgs === 3;
+         
+        if (numArgs === 1) {
+            const newScope: InternalScope = createScope(scope.depth + 1)
+            const standardInterface: StandardInterface = createStandardInterface(newScope); 
+            (flowFunction as ScopeFunction)(standardInterface)
+            app.log(`Scope: ${flowFunction.name || 'unnamed' } -> (`)
+            await newScope.exec(data, app)
+            app.log(')')
 
-            case 2:
-              app.log(`func: ${flowFunction.name}`)
-   
-              // normal sync/async middleware function
-              await (flowFunction as Middleware)(data, app)
-              break
-
-            case 3:
-              app.log(`func: ${flowFunction.name}`)
-              // middleware functions with a 'next' callback
-              await new Promise(resolve => (flowFunction as CallbackMiddleware)(data, app, resolve))
-              break
-
-            default:
-              throw new Error('Reflow middleware must accept 1-3 arguments!')
+        } else if (numArgs === 2 || requiresCallback) {
+          app.log(`Middleware: ${flowFunction.name || 'unnamed'} ->`)
+          const debug = createDebugObject(app.debug.jobId, scope.depth + 1, app.debug.stack) 
+          const newApp = createAppObject(app.model, app.service, debug, app.relays); 
+          try { 
+            if(requiresCallback)
+              await new Promise(resolve => (flowFunction as CallbackMiddleware)(data, newApp, resolve))
+            else
+              await (flowFunction as Middleware)(data, newApp)
+          } catch(err) {
+            app.log(err)
           }
-
-        } catch (err){
-          // TODO - log both reflow and js stacks
-          throw err        
+        } else {
+          throw new Error('Telescope middleware must accept 2/3 arguments, and scopes accept 1')
         }
       }
     }

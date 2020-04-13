@@ -64,8 +64,7 @@ export const createTelescope = (schemas: Schema[], signalMaps: SignalMap[], rela
        
     const scope: InternalScope = createScope(START_DEPTH);
 
-    app.log("EMITTED  |-------------->  " + trigger);
-    app.log("with payload  |---------->  ", payload);
+    app.log("EMITTED  |-------------->  " + trigger, payload);
 
     scopeFunction(createStandardInterface(scope)) 
 

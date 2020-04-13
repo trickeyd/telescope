@@ -4,6 +4,7 @@ import has from 'lodash.has'
 import { Schema } from "./schema";
 import { validateValueBySchemaNode } from "./validation";
 import { stringify } from "../../utils/strings";
+import { clone } from "./store-cloner";
 
 export interface Model {
   getProp: (path: string) => any
@@ -13,15 +14,14 @@ export interface Model {
   unlistenToProperty: (path: string, callback: (value: any) => void) => void
 }
 
-export const createModelFromSchema = (name: string, schema: Schema): Model => {
+  export const createModelFromSchema = (name: string, schema: Schema): Model => {
   let store = Object.create(null)
   let setHasBeenCalled = false
   
   const getProp = (path: string): any => {
-    // TODO - throw if not found
-    // TODO - clone
+    const descriptor = schema.get(path)
     const value = lodashGet(store, path)
-    return value
+    return clone(value, descriptor);
   }
 
   const setProp = (path: string, value: any) => {
@@ -46,8 +46,6 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
     setHasBeenCalled = true
 
     const { isValid, validationMap } = validateValueBySchemaNode(value, schema.root)
-
-
 
     if(!isValid)
       throw Error(`Model "${name}" failed validation\n${stringify(validationMap)}`)
