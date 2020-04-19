@@ -8,3 +8,4 @@ export const executeMiddleware = async (middleware: Middleware | CallbackMiddlew
   else
     await (middleware as Middleware)(data, app)
 }
+

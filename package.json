@@ -9,6 +9,9 @@
     "test": "jest src",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\""
   },
+  "contributors": [
+    "James Trickey <james.trickeyd@gmail.com>"
+  ],
   "repository": {
     "type": "git",
     "url": "https://source.developers.google.com/p/small-talk-172501/r/replan"
@@ -17,7 +20,8 @@
     "react",
     "react-native",
     "framework",
-    "application"
+    "application",
+    "MVC"
   ],
   "files": [
     "lib/**/*"
@@ -41,7 +45,6 @@
     "react": "^16.12.0"
   },
   "dependencies": {
-    "hoist-non-react-statics": "^3.3.2",
     "lodash": "^4.17.10",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
