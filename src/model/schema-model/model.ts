@@ -54,11 +54,11 @@ export interface Model {
   }
 
   const listenToProperty = (path: string, callback: (value: any) => void) => {
-    schema.get(path).updated.add(callback)
+    schema.get(path).updated.on(callback)
   }
 
   const unlistenToProperty = (path: string, callback: (value: any) => void) => {
-    schema.get(path).updated.add(callback)
+    schema.get(path).updated.un(callback)
   } 
 
   return {

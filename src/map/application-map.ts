@@ -59,7 +59,7 @@ export const createTelescope = (): Telescope => {
         if(config === undefined)
           throw new Error('Signal undefined. Signals must be registered before they can be mapped')
         
-        config.signal.add(runScope(config.trigger, scopeFunction)) 
+        config.signal.on(runScope(config.trigger, scopeFunction)) 
       })  
     },
     createModels(schemas) {

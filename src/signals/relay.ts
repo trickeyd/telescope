@@ -47,7 +47,7 @@ export const Relay = (): Relay => {
   let rejectRelay: Function | undefined
   let isOn = true
 
-  onSwitch.add((payload?: any) => {
+  onSwitch.on((payload?: any) => {
     if(payload !== undefined) responsePayloads.push(payload)
     isOn = switches.every(swch => swch.isOn)
     if(isOn) {

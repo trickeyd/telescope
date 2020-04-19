@@ -1,6 +1,7 @@
 import { App, createAppObject } from './app-object'
 import { Data, createDataObject } from './data-object'
 import { createDebugObject } from "../debug/debug-object";
+import { executeMiddleware } from "../utils/functions";
 
 /*------------------------------------------
  * Types
@@ -8,6 +9,7 @@ import { createDebugObject } from "../debug/debug-object";
 export type ScopeFunction = (scope: Scope) => void 
 export type Middleware = (data: Data, app: App) => Promise<any> | void 
 export type CallbackMiddleware = (data: Data, app: App, next: Function) => void 
+
 type FlowFunction = CallableFunction | Middleware | ScopeFunction
 
 export type Guard = (data: Data, app: App) => boolean
@@ -139,7 +141,6 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
     exec: async (data: Data, app: App) => {
       for(const flowFunction of flowFunctions) {
         const numArgs = flowFunction.length
-        const requiresCallback = numArgs === 3;
          
         if (numArgs === 1) {
             const newScope: InternalScope = createScope(scope.depth + 1)
@@ -149,15 +150,12 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
             await newScope.exec(data, app)
             app.log(')')
 
-        } else if (numArgs === 2 || requiresCallback) {
+        } else if (numArgs === 2 || numArgs === 3) {
           app.log(`Middleware: ${flowFunction.name || 'unnamed'} ->`)
           const debug = createDebugObject(app.debug.jobId, scope.depth + 1, app.debug.stack) 
           const newApp = createAppObject(app.model, app.service, debug, app.relays); 
           try { 
-            if(requiresCallback)
-              await new Promise(resolve => (flowFunction as CallbackMiddleware)(data, newApp, resolve))
-            else
-              await (flowFunction as Middleware)(data, newApp)
+            await executeMiddleware((flowFunction as Middleware | CallbackMiddleware), data, app)
           } catch(err) {
             app.log(err)
           }

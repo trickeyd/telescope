@@ -79,7 +79,7 @@ const parseSchemaObject = (schemaConfig: SchemaConfig, updateParent?: Signal<unk
   Object.entries(schemaConfig).reduce(
     (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
       const node = acc[key] = parseSchemaNode(key, value)
-      updateParent && node.updated.add(updateParent.emit)
+      updateParent && node.updated.on(updateParent.emit)
       return acc 
     },
     {}
