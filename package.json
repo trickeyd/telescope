@@ -1,9 +1,12 @@
 {
-  "name": "@idiosync/replan",
-  "version": "2.0.0",
+  "name": "@idiosync/telescope",
+  "version": "2.0.2",
   "description": "An application framework for react-native",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts", 
   "scripts": {
+    "prepare" : "npm run build", 
+    "prepublishOnly" : "npm test && npm run lint", 
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
     "test": "jest src",
@@ -14,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://source.developers.google.com/p/small-talk-172501/r/replan"
+    "url": "https://github.com/trickeyd/telescope.git"
   },
   "keywords": [
     "react",
