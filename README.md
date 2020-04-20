@@ -12,7 +12,7 @@ Telescopes async nature of this makes it particularly easy to program user actio
 
 ```js
 const askUserToSaveScope = scope => scope(
-  slideSaveDialogueInFromRight,
+  slideSaveDialogueInFrom("right"),
   askUserToSave
 ).if(userClickedSave)(
   saveDocument
