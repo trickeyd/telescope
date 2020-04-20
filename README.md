@@ -6,15 +6,16 @@ Reduced boilerplate - Self-documenting syntax - Improved debugging - Data valida
 ![Telescope log](https://storage.googleapis.com/idiosync-web-images/telescope/telescope.png "Telescope")
 
 ## Reason
-Telescope aims to create an environmaent in which functions executed in your controller are listed like procedural code. It compartmentalises logic into 'scopes' - small function lists which have access to their own variables, and can be reused and moved around easily. This ultimatly reduces the amount of actions needed to be fired as logic is just included in the list, rather than firing off another action to trigger it.
+Telescope aims to present the many functions of a controller like procedural code. It encapsulates logic into 'scopes' - small function lists which have access to their own variables, and can be reused and moved around easily. This ultimately reduces the amount of actions / events needed as logic is just included in the list, rather than being tied to a seporate event.
 
-Telescopes async nature of this makes it particularly easy to program user actions that are conceptually only one action, like opening a dialoge, waiting for an animation to complete and finally reacting to the users response.
+Telescopes async nature makes it particularly easy to program user actions that are conceptually only one action. An example of this would be opening a dialogue, waiting for an animation to complete and finally reacting to the users response.
+
 
 ```js
 const askUserToSaveScope = scope => scope(
   slideSaveDialogueInFrom("right"),
   askUserToSave
-).if(userClickedSave)(
+).if(userDidClickSave)(
   saveDocument
 )
 
@@ -23,6 +24,7 @@ app.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
     askUserToSaveScope, // <--- above scope is added here
     closeDocument
   )
+)
 ```
 
 ## Installation:
