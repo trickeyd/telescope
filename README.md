@@ -7,4 +7,4 @@ An MVC framework for React
 
 
 [npm-image]: https://img.shields.io/npm/v/@idiosync/telescope
-[npm-url]: https://www.npmjs.com/package/@idiosync/telescope?activeTab=explore
+[npm-url]: https://www.npmjs.com/package/@idiosync/telescope
