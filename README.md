@@ -34,7 +34,8 @@ app.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
 )
 ```
 
-The console window shows everything that happening along with any logs or errors at the appropriate point an indentation
+The console window tracks everything that happens, along with any logs or errors at the appropriate point and indentation. 
+The job number allows jobs to be filltered if may are run concurrently.
 Console for above example:
 ```bash
 |     j:0     |  EMITTED  |-------------->  CLOSE_DOCUMENT_CLICKED {}
