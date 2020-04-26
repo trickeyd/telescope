@@ -6,12 +6,15 @@ Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debuggin
 ![Telescope log](https://storage.googleapis.com/idiosync-web-images/telescope/telescope.png "Telescope")
 
 ## Reason
-Telescope aims to present the controller logic as if it were procedural code, and in doing so reduce the number of 'actions' to those directly triggered by users.
-For any signal that is emitted, there is a single place to view every side effect that follows.
-Logic is encapsulated into a 'scopes' which are analogous to those found in regular javascript.
-In Telescope however, they are made up of function lists and conditional logic. As with javascript, scopes have access to their own variables and the variables of parent scopes.
+Telescope aims to present the controller logic as if it were procedural code, and in doing so reduce the number of events to
+those directly triggered by users.
 
-Telescopes async nature makes it particularly easy to program user interactions that are conceptually only one action.
+For any signal that is emitted, there is a single top down view of every side effect that follows it.
+Logic is encapsulated into a 'scopes' which are analogous to those found in regular javascript.
+In Telescope however, they are made up of lists of function and conditional logic.
+As with javascript, scopes have access to their own variables and the variables of parent scopes.
+
+Telescope's async nature makes it particularly easy to program user interactions that are conceptually only one process.
 An example of this would be opening a dialogue, waiting for an animation to complete and finally reacting to the user's response.
 
 
@@ -32,8 +35,8 @@ app.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
 ```
 
 
-I believe this framework is very intuitive to people that have been working with javascript for a while and is probably
-easiest understood in a real scenario, rather than documentation. I am currently working on a Hello World so
+This is a very intuitive framework to anyone that has worked with javascript for a while, and is probably
+easiest understood by viewing an actual scenario, as opposed to reading documentation. I am currently working on a Hello World so
 please bare with me.
 
 ## Installation
