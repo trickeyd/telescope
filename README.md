@@ -1,6 +1,6 @@
 [![NPM Version][npm-image]][npm-url]
 # Telescope
-### An MVC framework for React 
+## An MVC framework for React 
 Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debugging - Data validation
 
 ![Telescope log](https://storage.googleapis.com/idiosync-web-images/telescope/telescope.png "Telescope")
@@ -105,7 +105,7 @@ export const MyComponent = () => {
 ```
  
 
-# Schema Types
+### Schema Types
 
 ```js
 // String 
@@ -221,7 +221,7 @@ app.on(signals => signals.REFRESH_CLICKED,
 )
 ```
 
-# Middleware
+### Middleware
 
 Telescope decides how to behave based on the number of arguments a middleware function is expecting.
 
@@ -269,7 +269,7 @@ const fetchAndStoreUserProfile = scope => scope(
 ) 
 ``` 
 
-# Scope function
+### Scope function
 The Scope function as documented above offers an interface for constructing you controller:
 ```js
 
