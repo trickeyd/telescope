@@ -20,7 +20,6 @@ interface Executable {
 
 export interface InternalScope extends Executable {
   addExec: (exec: Executable) => void
-  readonly depth: number
 }
 
 export type Do = (...flowFunctions: NonEmptyArray<FlowFunction>) => StandardInterface 
@@ -45,6 +44,7 @@ export interface IfInterface {
 interface ConditionalBlock {
   guards: NonEmptyArray<Guard>
   flowFunctions: NonEmptyArray<FlowFunction>
+  type: string
 }
 
 type NonEmptyArray<T> = {
@@ -60,20 +60,19 @@ export type Scope = StandardInterface
 /*------------------------------------------
  * Body
  ------------------------------------------------------------------------------*/  
-export const createScope = (depth: number = 0): InternalScope => {
+export const createScope = (): InternalScope => {
   const executables: Executable[] = []
   return {
     addExec: (exec: Executable) => executables.push(exec),
     exec: async (data: Data, app: App) => {
       for (const executable of executables){
-        const debug = createDebugObject(app.debug.jobId, depth, app.debug.stack) 
+        const debug = createDebugObject(app.debug.jobId, app.debug.depth, app.debug.stack) 
         await executable.exec(
           createDataObject(data),
           createAppObject(app.model, app.service, debug, app.relays)
         )
       }
     },
-    get depth() { return depth }
   }
 }
 
@@ -86,16 +85,30 @@ export const createDo = (scope: InternalScope): Do =>
 export const createIf = (scope: InternalScope): If =>
   (...guards: NonEmptyArray<Guard>) =>
     (...flowFunctions: NonEmptyArray<FlowFunction>): IfInterface => {
-      const conditionalCases: ConditionalBlock[] = [{ guards, flowFunctions }]
+      const conditionalCases: ConditionalBlock[] = [{ guards, flowFunctions, type: 'if' }]
 
       scope.addExec({
         exec: async (data, app) => {
           for(const conditional of conditionalCases){
-            const { guards, flowFunctions } = conditional
-            if(guards.every(guard => guard(data, app))) {
+            const { guards, flowFunctions, type } = conditional
+            let pass = true
+            let logString = `${type}(`
+            for(const guard of guards) {
+              const currentPass = guard(data, app) 
+              logString += `${guard.name || 'unknown'} ${currentPass ? '√' : 'X'}` 
+              if(!currentPass){
+                pass = false
+              }
+            }
+            logString += `) ${pass ? '√ (' : 'X'}`
+            app.log(logString)
+            if(pass) {
               // TODO - make new objects for the scope
-              const flow = Flow(createScope(scope.depth + 1))(flowFunctions)
-              await flow.exec(data, app) 
+              const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack) 
+              const newApp = createAppObject(app.model, app.service, debug, app.relays);  
+              const flow = Flow(createScope())(flowFunctions)
+              await flow.exec(data, newApp) 
+              app.log(')')
               break
             }
           }
@@ -106,13 +119,13 @@ export const createIf = (scope: InternalScope): If =>
 
 const addCondition = (scope: InternalScope, conditionalCases: ConditionalBlock[]) =>
   (...guards: NonEmptyArray<Guard>) => (...flowFunctions: NonEmptyArray<FlowFunction>): IfInterface => {
-    conditionalCases.push({ guards, flowFunctions })
+    conditionalCases.push({ guards, flowFunctions, type: 'elseif' })
     return createIfInterface(scope, conditionalCases)
   } 
 
 const addElseCase = (scope: InternalScope, conditionalCases: ConditionalBlock[]) =>
   (...flowFunctions: NonEmptyArray<FlowFunction>): StandardInterface => {
-    conditionalCases.push({ guards: [ (data: Data, app: App) => true ], flowFunctions })
+    conditionalCases.push({ guards: [ (data: Data, app: App) => true ], flowFunctions, type: 'else' })
     return createStandardInterface(scope)
   }  
 
@@ -139,23 +152,24 @@ const createIfInterface = (scope: InternalScope, conditionalBlocks: ConditionalB
 const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunction>): Executable => {
   return {
     exec: async (data: Data, app: App) => {
+      const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack) 
+      const newApp = createAppObject(app.model, app.service, debug, app.relays); 
+       
       for(const flowFunction of flowFunctions) {
         const numArgs = flowFunction.length
-         
+
         if (numArgs === 1) {
-            const newScope: InternalScope = createScope(scope.depth + 1)
-            const standardInterface: StandardInterface = createStandardInterface(newScope); 
-            (flowFunction as ScopeFunction)(standardInterface)
-            app.log(`Scope: ${flowFunction.name || 'unnamed' } -> (`)
-            await newScope.exec(data, app)
-            app.log(')')
+          const newScope: InternalScope = createScope()
+          const standardInterface: StandardInterface = createStandardInterface(newScope); 
+          (flowFunction as ScopeFunction)(standardInterface)
+          app.log(`Scope: ${flowFunction.name || 'unnamed' } --> (`)
+          await newScope.exec(data, newApp)
+          app.log(')')
 
         } else if (numArgs === 2 || numArgs === 3) {
-          app.log(`Middleware: ${flowFunction.name || 'unnamed'} ->`)
-          const debug = createDebugObject(app.debug.jobId, scope.depth + 1, app.debug.stack) 
-          const newApp = createAppObject(app.model, app.service, debug, app.relays); 
+          app.log(`Middleware: ${flowFunction.name || 'unnamed'} =>`)
           try { 
-            await executeMiddleware((flowFunction as Middleware | CallbackMiddleware), data, app)
+            await executeMiddleware((flowFunction as Middleware | CallbackMiddleware), data, newApp)
           } catch(err) {
             app.log(err)
           }

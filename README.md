@@ -34,6 +34,21 @@ app.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
 )
 ```
 
+The console window shows everything that happening along with any logs or errors at the appropriate point an indentation
+Console for above example:
+```bash
+|     j:0     |  EMITTED  |-------------->  CLOSE_DOCUMENT_CLICKED {}
+|     j:0     |  if(documentIsNotSaved √) √ (
+|     j:0     |    askUserToSaveScope --> (
+|     j:0     |      slideSaveDialogueInFrom =>
+|     j:0     |      askUserToSave =>
+|     j:0     |    ) 
+|     j:0     |    if(userDidClickSave √) √ (
+|     j:0     |      saveDocument =>
+|     j:0     |    ) 
+|     j:0     |  )
+|     j:0     |  COMPLETE |<--------------  CLOSE_DOCUMENT_CLICKED
+```
 
 This is a very intuitive framework to anyone that has worked with javascript for a while, and is probably
 easiest understood by viewing an actual scenario, as opposed to reading documentation. I am currently working on a Hello World so

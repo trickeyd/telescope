@@ -25,7 +25,7 @@ describe('core', () => {
   let app: App
 
   beforeEach(() => { 
-    scope = createScope(0)
+    scope = createScope()
     middleware = jest.fn((data: Data, app: App) => {})
     trueGuard = jest.fn((data: Data, app: App) => true)
     data = createDataObject({ payload: { thing: 'thing' }, trigger: 'SOME_EVENT', scope: new Map(), flow: new Map() })

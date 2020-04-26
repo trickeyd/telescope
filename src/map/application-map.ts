@@ -46,7 +46,7 @@ export const createTelescope = (): Telescope => {
     const debug: Debug = createDebugObject(`j:${numberOfJobs++}`, START_DEPTH)
     const data = createDataObject({ trigger, payload, scope: new Map(), flow: new Map()})
     const app = createAppObject(model, {}, debug, relayMap)
-    const scope: InternalScope = createScope(START_DEPTH);
+    const scope: InternalScope = createScope();
 
     app.log("EMITTED  |-------------->  " + trigger, payload);
     scopeFunction(createStandardInterface(scope)) 
