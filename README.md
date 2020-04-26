@@ -88,7 +88,7 @@ export default App
  
 ## Models
 
-Data in Telescope is stored in models which are validated when ever something anything changed.
+Data in Telescope is stored in models which are validated whenever anything is changed.
 To achieve this, Schemas are written when setting up the app. As well as type checking, bespoke validation can be added here.
 
 ```js
