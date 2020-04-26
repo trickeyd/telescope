@@ -97,11 +97,10 @@ const getProp = (pathSections: string[], propDescriptor: PropertyDescriptor): Pr
 export interface Schema {
   get: (path: string) => PropertyDescriptor
   readonly root: PropertyDescriptor
-  readonly name: string
 }
  
-export const Schema = (name: string, schemaNode: SchemaNode): Schema => {
-  const parsedSchema = parseSchemaNode(name, schemaNode) 
+export const Schema = (schemaNode: SchemaNode): Schema => {
+  const parsedSchema = parseSchemaNode('root', schemaNode) 
 
   const get = (path: string): PropertyDescriptor => {
     const pathSections = path.split('.') 
@@ -111,6 +110,5 @@ export const Schema = (name: string, schemaNode: SchemaNode): Schema => {
   return {
     get,
     get root() { return parsedSchema },
-    get name() { return name }
   }
 }

@@ -16,14 +16,16 @@ export type SignalFetcher = (signals: SignalConfigMap) => SignalConfig
 export type RelayMap = { [key: string]: Relay }
 export type RelayFetcher = (signals: RelayMap) => Relay
  
-export type ModelMap = Map<string, Model>;
 export type ServiceMap = Map<string, any>;
+
+type SchemaConfig = { [ key: string ] : Schema }
+type ModelMap = { [ key: string ] : Model }
 
 
 export interface Telescope {
   on: (signalFetcher: SignalGroupFetcher, scopeFunction: ScopeFunction) => void
   model: any
-  createModels: (schema: Schema | Schema[]) => void 
+  createModels: (schemas: SchemaConfig | SchemaConfig[]) => void 
   registerSignals: (signalMaps: SignalMap | SignalMap[]) => void
   registerRelays: (relayMaps: RelayMap | RelayMap[]) => void 
   signalConfigMap: SignalConfigMap
@@ -33,7 +35,7 @@ export interface Telescope {
 const START_DEPTH = 0;
 
 export const createTelescope = (): Telescope => {
-  const model: ModelMap = new Map()
+  const model: ModelMap = Object.create(null)
   const signalConfigMap: SignalConfigMap = {}
   const relayMap = {}
   
@@ -62,12 +64,18 @@ export const createTelescope = (): Telescope => {
         config.signal.on(runScope(config.trigger, scopeFunction)) 
       })  
     },
-    createModels(schemas) {
-      enforceArray(schemas).forEach((schema: Schema) => {
-        if(model.has(schema.name))
-          throw new Error('Multiple schemas supplied and the same name')
-        model.set(schema.name, createModelFromSchema(schema.name, schema)) 
-      })
+    createModels(schemas: SchemaConfig | SchemaConfig[]) {
+      enforceArray(schemas).reduce((outerAcc: ModelMap, schemaConfig: SchemaConfig) =>
+        Object.entries(schemaConfig).reduce(
+          (acc: ModelMap, [key, value]: [string, Schema]) => {
+            if(acc[key]) throw new Error('Multiple schemas supplied and the same name')
+            model[key] = createModelFromSchema(key, value)
+            return model
+          },
+          outerAcc
+        ),
+        model
+      )
     },
     registerSignals (signalMaps: SignalMap | SignalMap[]) {
       enforceArray(signalMaps).reduce((signalConfigMap: SignalConfigMap, signalMap: SignalMap) =>
@@ -99,5 +107,5 @@ export const createTelescope = (): Telescope => {
     relayMap
   }
 }
-
+ 
 const enforceArray = (item: any) => Array.isArray(item) ? item : [item]

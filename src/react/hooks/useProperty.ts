@@ -5,7 +5,7 @@ import { Telescope } from "../../map/application-map";
 
 export const useProperty = (modelName: string, path: string) => {
   const telescope: Telescope = useTelescope()
-  const model: Model = telescope.model.get(modelName)
+  const model: Model = telescope.model[modelName]
   if(!model) throw new Error(`Model ${modelName} does not exist`)
 
   const [value, setValue] = useState(model.getProp(path))

@@ -125,7 +125,7 @@ describe('schema.ts', () => {
 
   describe('when creating a simple schema', () => {
     beforeEach(() => {
-      schema = Schema('schema', Obj({
+      schema = Schema(Obj({
         str: Str(),
         num: Num(),
         bool: Bool(),

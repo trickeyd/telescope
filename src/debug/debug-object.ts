@@ -14,8 +14,8 @@ const addToStack = (stack: StackItem[]) =>
       functionName,
       depth,
       guardResult
-    };
-  };
+    }
+  }
 
 const logStack = (stack: StackItem[]) => () => {
   const logString = '';
@@ -28,7 +28,7 @@ const logStack = (stack: StackItem[]) => () => {
     ) + "\n"
   })
   console.log(logString)
-};
+}
  
 const log = (jobId: string, depth: number) => (...args: any[]) => {
   const spaceBefore =  Math.ceil((14 - jobId.length) / 2)
@@ -36,7 +36,7 @@ const log = (jobId: string, depth: number) => (...args: any[]) => {
 
   let startingText = `|${createSpace(spaceBefore)}${jobId}${createSpace(spaceAfter)} |`
   console.log(`${startingText}${createSpace((depth + 1) * 2)}`,...args)
-};
+}
 
 export interface Debug {
   addToStack: (functionName: string, depth: number, guardResult: boolean | null) => void
@@ -56,5 +56,5 @@ export const createDebugObject = (jobId: string, depth: number, stack: StackItem
     get stack() { return stack },
     get depth() { return depth },
   }
-};
+}
 

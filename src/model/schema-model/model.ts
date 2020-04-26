@@ -14,7 +14,7 @@ export interface Model {
   unlistenToProperty: (path: string, callback: (value: any) => void) => void
 }
 
-  export const createModelFromSchema = (name: string, schema: Schema): Model => {
+export const createModelFromSchema = (name: string, schema: Schema): Model => {
   let store = Object.create(null)
   let setHasBeenCalled = false
   
