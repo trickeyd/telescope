@@ -1,4 +1,4 @@
-![Idiosync Ltd]("https://storage.googleapis.com/idiosync-web-images/telescope/idiosync.png" "Idiosync Ltd") 
+![Idiosync Ltd](https://storage.googleapis.com/idiosync-web-images/telescope/idiosync.png "Idiosync Ltd") 
 
 [![NPM Version][npm-image]][npm-url]
 # Telescope
