@@ -1,6 +1,6 @@
 [![NPM Version][npm-image]][npm-url]
 # Telescope
-<div style="margin-bottom: 10px"><h3>An MVC framework for React - by</h3><img src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_very_small.png"/></div>
+<span style="margin-bottom: 10px;"><h3>An MVC framework for React - by</h3><img src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_very_small.png"/></span>
 
 Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debugging - Data validation
 
