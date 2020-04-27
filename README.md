@@ -1,8 +1,6 @@
-![Idiosync Ltd](https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_small.png "Idiosync Ltd") 
-
 [![NPM Version][npm-image]][npm-url]
 # Telescope
-## An MVC framework for React 
+## An MVC framework for React - by ![Idiosync Ltd](https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_small.png "Idiosync Ltd")
 Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debugging - Data validation
 
 ![Telescope](https://storage.googleapis.com/idiosync-web-images/telescope/telescope.png "Telescope")
