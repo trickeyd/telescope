@@ -1,6 +1,7 @@
 import lodashGet from 'lodash.get'
 import isString from 'lodash.isstring'
 import isNumber from 'lodash.isnumber'
+import isDate from 'lodash.isdate'
 import isBoolean from 'lodash.isboolean'
 import isArray from 'lodash.isarray'
 import isUndefined from 'lodash.isundefined'
@@ -10,7 +11,8 @@ import {
   INum,
   IStr,
   IArr,
-  IObj,
+  IDate,
+  IObj ,
   Validator,
   SchemaConfig,
   PropertyType,
@@ -22,7 +24,7 @@ import {
   ValidationEnablerMap,
   SchemaNodeContent,
 } from "./types";
-import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation } from "./validation";
+import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation, createDateValidation } from "./validation";
 import { Signal } from "../../signals/signal";
 
 const createSchemaType = <T extends unknown>(propType: PropertyType, contentSchema?: SchemaConfig, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
@@ -46,6 +48,7 @@ export const Any = (): IAny => createSchemaType<IAny>(PropertyType.any, undefine
 export const Str = (): IStr => createSchemaType<IStr>(PropertyType.string, undefined, createCommonValidation(isString, PropertyType.string), createValidatorAdder(), createLengthValidation() )
 export const Num = (): INum => createSchemaType<INum>(PropertyType.number, undefined, createCommonValidation(isNumber, PropertyType.number), createValidatorAdder())
 export const Bool = (): IBool => createSchemaType<IBool>(PropertyType.boolean, undefined, createCommonValidation(isBoolean, PropertyType.boolean))
+export const Date = (): IDate => createSchemaType<IDate>(PropertyType.date, undefined, createCommonValidation(isDate, PropertyType.date), createDateValidation())
 export const Arr = (contentSchema: SchemaConfig): IArr => {
   if(isUndefined(contentSchema))
     throw Error('The Arr SchemaType function requires a SchemaConfig.')

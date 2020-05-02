@@ -1,5 +1,5 @@
-import { Num, Str, Obj, Arr, Bool, Schema } from "./schema";
-import { PropertyDescriptor, INum, IStr, IObj, IArr, IBool, PropertyType } from "./types";
+import { Num, Str, Obj, Arr, Bool, Schema, Date as TDate } from "./schema";
+import { PropertyDescriptor, INum, IStr, IObj, IArr, IBool, PropertyType, IDate } from "./types";
 
 describe('schema.ts', () => {
   let schema: Schema
@@ -17,6 +17,11 @@ describe('schema.ts', () => {
       maxLength: expect.any(Function),
       minLength: expect.any(Function), 
     })
+    const dateValidators = expect.objectContaining({  
+      earliest: expect.any(Function),
+      latest: expect.any(Function),
+    })
+     
 
     describe('Num()', () => {
       let num: INum
@@ -96,6 +101,23 @@ describe('schema.ts', () => {
         expect(Arr({})('prop').content).not.toEqual(undefined)
       })
     })
+
+    describe('Date()', () => {
+      let date: IDate
+      it('should return appropriate functions', () => {
+        date = TDate()
+        expect(date).toEqual(commonValidators)
+        expect(date).toEqual(dateValidators)
+      })
+
+      it('should validate a date appropriately', () => {
+        expect(TDate()('prop').validate(new Date(Date.now())).isValid).toBe(true)
+        expect(TDate()('prop').validate(Date.now()).isValid).toBe(false)
+        expect(TDate()('prop').validate('test').isValid).toBe(false)
+      })
+
+    })
+     
 
     describe('Obj()', () => {
       let obj: IObj

@@ -28,6 +28,7 @@ export enum PropertyType {
   boolean = 'boolean',
   object = 'object',
   array = 'array',
+  date = 'date',
   any = 'any'
 }
 
@@ -53,12 +54,18 @@ interface AddValidator<T> extends SchemaType {
   validate: (validator: Validator) => T
 }
 
+interface DateValidation<T> extends SchemaType {
+  laterThan: (date: Date) => T
+  earlierThan: (date: Date) => T
+}
+
 export interface IStr extends CommonValidation<IStr>, LengthValidation<IStr>, AddValidator<IStr> { }
 export interface INum extends CommonValidation<INum>, AddValidator<INum> { }
 export interface IBool extends CommonValidation<IBool> { }
 export interface IAny extends CommonValidation<IAny>, AddValidator<IAny> { } 
 export interface IArr extends CommonValidation<IArr>, LengthValidation<IArr>, AddValidator<IArr> { } 
 export interface IObj extends CommonValidation<IObj>, AddValidator<IObj> { } 
+export interface IDate extends CommonValidation<IDate>, DateValidation<IDate> { }
 
 export type SchemaNodeContent = { [key: string]: PropertyDescriptor }
 export type SchemaConfig = { [key: string]: SchemaNode }

@@ -1,5 +1,5 @@
 export { TelescopeProvider } from './react/context'
-export { Schema, Num, Str, Obj, Arr, Any, Bool } from './model/schema-model'
+export { Schema, Num, Str, Obj, Arr, Any, Bool, Date } from './model/schema-model'
 export { SchemaNode } from './model/schema-model/types'
 export { Signal } from "./signals/signal"
 export { Relay } from "./signals/relay"

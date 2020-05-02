@@ -1,12 +1,12 @@
 {
   "name": "@idiosync/telescope",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "An application framework for react-native",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts", 
+  "types": "lib/index.d.ts",
   "scripts": {
-    "prepare" : "npm run build", 
-    "prepublishOnly" : "npm test && npm run lint", 
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
     "test": "jest src",
@@ -48,11 +48,12 @@
     "react": "^16.12.0"
   },
   "dependencies": {
-    "lodash": "^4.17.10",
+    "@types/lodash.isdate": "^4.0.6",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "lodash.isarray": "^4.0.0",
     "lodash.isboolean": "^3.0.3",
+    "lodash.isdate": "^4.0.1",
     "lodash.isnull": "^3.0.0",
     "lodash.isnumber": "^3.0.3",
     "lodash.isplainobject": "^4.0.6",

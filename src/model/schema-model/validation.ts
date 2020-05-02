@@ -82,6 +82,34 @@ export const createLengthValidation = (): ValidationEnablerMapFactory =>
       }, 
     }
   }
+
+export const createDateValidation = (): ValidationEnablerMapFactory =>
+  <T>(returnObject:T, validators: Validator[]) => {
+    let minDate: undefined | Date
+    let maxDate: undefined | Date
+
+    validators.push((item) => {
+      if(minDate && item < minDate)
+        return `it should not be before ${minDate.toISOString()}`
+
+
+      if(maxDate && item > maxDate)
+        return `it should not be after ${maxDate.toISOString()}`
+
+      return true
+    })
+
+    return {
+      earliest: (earliest: Date): T => {
+        minDate = earliest
+        return returnObject
+      },
+      latest: (latest: Date): T => {
+        maxDate = latest
+        return returnObject
+      }
+    }
+  }
  
 export const createValidatorAdder = (): ValidationEnablerMapFactory => <T>(returnObject: T, validators: Validator[]) => ({
   validate: (validator: Validator): T => {

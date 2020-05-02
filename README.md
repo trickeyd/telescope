@@ -152,6 +152,12 @@ Bool()
   .required()
   .nullable()
  
+// Date 
+Date()
+  .required()
+  .nullable() 
+  .earliest(/* accepts a js Date object */)
+  .latest(/* accepts a js Date object */)
 
 // Array
 Arr()
