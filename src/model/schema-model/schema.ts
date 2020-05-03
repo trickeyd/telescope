@@ -61,12 +61,11 @@ export const Obj = (contentSchema: SchemaConfig): IObj => {
   return createSchemaType<IObj>(PropertyType.object, contentSchema, createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
 } 
 
+// replace literals with schema types
 export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyDescriptor => {
   if(isArray(schemaNode)){
-
     if(schemaNode.length > 1)
       throw Error('Array shorthand in schema may only have one child')
-
     return (Arr((schemaNode)[0]))(name) 
   }
 
@@ -94,16 +93,6 @@ const parseSchemaObject = (schemaNode: SchemaNode, updateParent: Signal<unknown>
   }
 }
 
-const getProp = (path: string, propDescriptor: PropertyDescriptor): PropertyDescriptor => {
-  console.log({path, propDescriptor})
-  const prop = lodashGet(propDescriptor, path)
-  console.log({prop})
-
-  if(!prop) throw Error(`Property "${path}" does not exist on "${propDescriptor.name}".`)
-
-  return prop
-}
-
 export interface Schema {
   get: (path: string) => PropertyDescriptor
   readonly root: PropertyDescriptor
@@ -111,14 +100,13 @@ export interface Schema {
  
 export const Schema = (schemaNode: SchemaNode): Schema => {
   const parsedSchema = parseSchemaNode('root', schemaNode) 
-
-  const get = (path: string): PropertyDescriptor => {
-    const parsedPath = 'content.' + path.split('.').join('.content.').split(/\[.\]/).join('.content') 
-    return getProp(parsedPath, parsedSchema)
-  }
-
   return {
-    get,
+    get (path: string) {
+      const parsedPath = 'content.' + path.split('.').join('.content.').split(/\[.\]/).join('.content') 
+      const prop = lodashGet(parsedSchema, parsedPath)
+      if(!prop) throw Error(`Property "${path}" does not exist on "${parsedSchema.name}".`)
+      return prop
+    },
     get root() { return parsedSchema },
   }
 }
