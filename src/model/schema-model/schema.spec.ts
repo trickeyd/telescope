@@ -100,6 +100,10 @@ describe('schema.ts', () => {
       it('should have populated content', () => {
         expect(Arr({})('prop').content).not.toEqual(undefined)
       })
+
+      it('should handle schema types being passed', () => {
+        expect(Arr(Num())('prop').content).not.toEqual(undefined)
+      })
     })
 
     describe('Date()', () => {
@@ -145,7 +149,7 @@ describe('schema.ts', () => {
     })
   })
 
-  describe('when creating a simple schema', () => {
+  describe.only('when creating a simple schema', () => {
     beforeEach(() => {
       schema = Schema(Obj({
         str: Str(),
@@ -165,6 +169,7 @@ describe('schema.ts', () => {
         arrLit:[{
           prop: Str()
         }],
+        arrWithType: Arr(Num()),
         objLit:{
           prop: Str()
         }
@@ -176,14 +181,19 @@ describe('schema.ts', () => {
       expect(schema.get('num').type).toBe(PropertyType.number)
       expect(schema.get('bool').type).toBe(PropertyType.boolean)
       expect(schema.get('obj').type).toBe(PropertyType.object)
+      expect(schema.get('objLit').type).toBe(PropertyType.object)
       expect(schema.get('arr').type).toBe(PropertyType.array)
+      expect(schema.get('arrLit').type).toBe(PropertyType.array)
+      expect(schema.get('arrWithType').type).toBe(PropertyType.array)
     })
 
     it('should be able to access nested props', () => {
       expect(schema.get('obj.prop1').type).toBe(PropertyType.string)
       expect(schema.get('obj.prop2').type).toBe(PropertyType.number)
-      expect(schema.get('arr.prop1').type).toBe(PropertyType.string)
-      expect(schema.get('arr.prop2').type).toBe(PropertyType.number)
+      expect(schema.get('arr[0]').type).toBe(PropertyType.object)
+      expect(schema.get('arr[0].prop1').type).toBe(PropertyType.string)
+      expect(schema.get('arr[0].prop2').type).toBe(PropertyType.number)
+      expect(schema.get('arrWithType[0]').type).toBe(PropertyType.number)
       expect(schema.get('obj.obj.str').type).toBe(PropertyType.string)
     })
 
@@ -202,24 +212,3 @@ describe('schema.ts', () => {
 
   })
 })
-
-//model.setProp('anything', { poo: 'sdf' })
-//model.setProp('poo', 'sdf')
-/*model.set({
-  id: 123,
-  name: 'kjlj',
-  ant: 12,
-  props: {
-    prop1: 'ijij',
-    prop2: 'fsd',
-    prop3:'dfd',
-    list: [
-      { id: 123, name:'asdf' },
-      { id: 234, name: 123 }
-    ],
-    another: {
-      one: 'sdf'
-    },
-  }
-})
-*/

@@ -27,10 +27,10 @@ import {
 import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation, createDateValidation } from "./validation";
 import { Signal } from "../../signals/signal";
 
-const createSchemaType = <T extends unknown>(propType: PropertyType, contentSchema?: SchemaConfig, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
+const createSchemaType = <T extends unknown>(propType: PropertyType, contentNode?: SchemaNode, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
   const validators: Validator[] = []
   const updated: Signal<unknown> = Signal()
-  const content = contentSchema ? parseSchemaObject(contentSchema, updated) : undefined; 
+  const content = contentNode ? parseSchemaObject(contentNode, updated, propType) : undefined; 
   const returnObject: SchemaType = (name: string) => ({ name, type: propType, updated, content, validate: validateAll(validators) })
   const validationEnablerMap = validationEnablerFactories.reduce(
     (acc: ValidationEnablerMap<T>, cur: ValidationEnablerMapFactory) => ({ ...acc, ...cur(returnObject as T, validators) }),
@@ -49,16 +49,15 @@ export const Str = (): IStr => createSchemaType<IStr>(PropertyType.string, undef
 export const Num = (): INum => createSchemaType<INum>(PropertyType.number, undefined, createCommonValidation(isNumber, PropertyType.number), createValidatorAdder())
 export const Bool = (): IBool => createSchemaType<IBool>(PropertyType.boolean, undefined, createCommonValidation(isBoolean, PropertyType.boolean))
 export const Date = (): IDate => createSchemaType<IDate>(PropertyType.date, undefined, createCommonValidation(isDate, PropertyType.date), createDateValidation())
-export const Arr = (contentSchema: SchemaConfig): IArr => {
+export const Arr = (contentSchema: SchemaNode): IArr => {
   if(isUndefined(contentSchema))
-    throw Error('The Arr SchemaType function requires a SchemaConfig.')
+    throw Error('The Arr SchemaType function requires a SchemaNode to be passed.')
   return createSchemaType<IArr>(PropertyType.array, contentSchema, createCommonValidation(isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
 }
 
 export const Obj = (contentSchema: SchemaConfig): IObj => {
   if(isUndefined(contentSchema))
-    throw Error('The Obj SchemaType function requires a SchemaConfig.')
-  
+    throw Error('The Obj SchemaType function requires a SchemaConfig to be passed.')
   return createSchemaType<IObj>(PropertyType.object, contentSchema, createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
 } 
 
@@ -78,24 +77,32 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyD
 }
 
 // any parent child interaction should be done here
-const parseSchemaObject = (schemaConfig: SchemaConfig, updateParent?: Signal<unknown>): SchemaNodeContent =>
-  Object.entries(schemaConfig).reduce(
-    (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
-      const node = acc[key] = parseSchemaNode(key, value)
-      updateParent && node.updated.on(updateParent.emit)
-      return acc 
-    },
-    {}
-  )  
+const parseSchemaObject = (schemaNode: SchemaNode, updateParent: Signal<unknown>, propType: PropertyType): SchemaNodeContent | PropertyDescriptor => {
+  if(propType === PropertyType.array){
+    const node =  parseSchemaNode('values', schemaNode)
+    updateParent && node.updated.on(updateParent.emit)
+    return node
+  } else {
+    return Object.entries(schemaNode).reduce(
+      (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
+        const node = acc[key] = parseSchemaNode(key, value)
+        updateParent && node.updated.on(updateParent.emit)
+        return acc 
+      },
+      {}
+    )  
+  }
+}
 
-const getProp = (pathSections: string[], propDescriptor: PropertyDescriptor): PropertyDescriptor => {
-  const propPath = (pathSections.shift() as string).split('[')[0]
-  const prop = lodashGet(propDescriptor, 'content.' + propPath)
+const getProp = (path: string, propDescriptor: PropertyDescriptor): PropertyDescriptor => {
+  console.log({path, propDescriptor})
+  const prop = lodashGet(propDescriptor, path)
+  console.log({prop})
 
-  if(!prop) throw Error(`Property "${propPath}" does not exist on "${propDescriptor.name}".`)
+  if(!prop) throw Error(`Property "${path}" does not exist on "${propDescriptor.name}".`)
 
-  return pathSections.length ? getProp(pathSections, prop) : prop
-} 
+  return prop
+}
 
 export interface Schema {
   get: (path: string) => PropertyDescriptor
@@ -106,8 +113,8 @@ export const Schema = (schemaNode: SchemaNode): Schema => {
   const parsedSchema = parseSchemaNode('root', schemaNode) 
 
   const get = (path: string): PropertyDescriptor => {
-    const pathSections = path.split('.') 
-    return getProp(pathSections, parsedSchema)
+    const parsedPath = 'content.' + path.split('.').join('.content.').split(/\[.\]/).join('.content') 
+    return getProp(parsedPath, parsedSchema)
   }
 
   return {

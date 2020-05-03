@@ -152,12 +152,14 @@ Bool()
   .required()
   .nullable()
  
+
 // Date 
 Date()
   .required()
   .nullable() 
   .earliest(/* accepts a js Date object */)
   .latest(/* accepts a js Date object */)
+
 
 // Array
 Arr()
@@ -167,7 +169,6 @@ Arr()
   .maxLength(/* accepts number */)
   .minLength(/* accepts number */)
   .validate(/* accepts function which returns boolean */)
-
   // Arrays can also be represented with a [] literal, 
   // and default configuration will be applied
 
@@ -177,7 +178,6 @@ Obj()
   .required()
   .nullable()
   .validate(/* accepts function which returns boolean */) 
-
   // Objects can also be represented with a {} literal, 
   // and default configuration will be applied
    
