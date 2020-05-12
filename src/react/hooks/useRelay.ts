@@ -2,24 +2,31 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useTelescope } from "./useTelescope";
 import { Telescope, RelayFetcher } from "../../map/application-map";
 
-export const useRelay = (relayFetcher: RelayFetcher) => {
+const defaultState = {
+  isActive: false,
+  isInit: false,
+  payload: undefined,
+  componentPayload: undefined
+} 
+
+interface Relay {
+  isActive: boolean
+  emit: (componentPayload?: any) => void
+  payload?: any
+}
+
+export const useRelay = (relayFetcher: RelayFetcher): Relay => {
   const telescope: Telescope = useTelescope()
   const relayMap = telescope.relayMap
   const relay = relayFetcher(relayMap)
-  const [
-    { relayIsActive, isInit, payload, componentPayload },
-    setRelayState
-  ] = useState({
-    relayIsActive: false,
-    isInit: false,
-    payload: undefined,
-    componentPayload: undefined
-  })
+  if(!relay)
+    throw new Error("Relay not registered")
+  const [ { isActive, isInit, payload, componentPayload }, setRelayState ] = useState(defaultState)
 
   const relaySwitch = useMemo(() =>
     relay.createSwitch((payload: any) => {
       setRelayState({
-        relayIsActive: true,
+        isActive: true,
         isInit: true,
         payload,
         componentPayload: undefined
@@ -29,8 +36,8 @@ export const useRelay = (relayFetcher: RelayFetcher) => {
   )
 
   useEffect(() => {
-    if(!relayIsActive && isInit) relaySwitch.emit(componentPayload)
-  }, [relayIsActive])
+    if(!isActive && isInit) relaySwitch.emit(componentPayload)
+  }, [isActive])
 
   useEffect(() => {
     relaySwitch.bypass  = false
@@ -39,6 +46,11 @@ export const useRelay = (relayFetcher: RelayFetcher) => {
     }
   }) 
   
-  return [relayIsActive, (componentPayload?: any) =>
-    setRelayState({ relayIsActive: false, isInit, payload, componentPayload }), payload]
+  return { 
+    isActive,
+    emit: (componentPayload?: any) => { 
+      setRelayState({ isActive: false, isInit, payload, componentPayload })
+    },
+    payload
+  }
 }

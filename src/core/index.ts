@@ -1,4 +1,5 @@
 export {
   createStandardInterface,
-  Scope
+  Scope,
+  IScope
 } from './core'

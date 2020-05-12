@@ -10,9 +10,9 @@ export type ScopeFunction = (scope: Scope) => void
 export type Middleware = (data: Data, app: App) => Promise<any> | void 
 export type CallbackMiddleware = (data: Data, app: App, next: Function) => void 
 
-type FlowFunction = CallableFunction | Middleware | ScopeFunction
+type FlowFunction = CallableFunction | Middleware | ScopeFunction | null
 
-export type Guard = (data: Data, app: App) => boolean
+export type Guard = (data: Data, app: App) => boolean | Promise<boolean>
 
 interface Executable {
   exec: (data: Data, app: App) => Promise<any> 
@@ -51,8 +51,9 @@ type NonEmptyArray<T> = {
     0: T
 } & Array<T> 
 
-// using Scope type publicly, as it makes more sense from a user perspective.
-export type Scope = StandardInterface
+// using Scope and IScope types publicly, as it makes more sense from a user perspective.
+export type Scope = ScopeFunction
+export type IScope = StandardInterface
  
 
 
@@ -94,7 +95,7 @@ export const createIf = (scope: InternalScope): If =>
             let pass = true
             let logString = `${type}(`
             for(const guard of guards) {
-              const currentPass = guard(data, app) 
+              const currentPass = await guard(data, app) 
               logString += `${guard.name || 'unknown'} ${currentPass ? '√' : 'X'}` 
               if(!currentPass){
                 pass = false
@@ -156,6 +157,8 @@ const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunctio
       const newApp = createAppObject(app.model, app.service, debug, app.relays); 
        
       for(const flowFunction of flowFunctions) {
+        if(flowFunction === null) continue;
+
         const numArgs = flowFunction.length
 
         if (numArgs === 1) {

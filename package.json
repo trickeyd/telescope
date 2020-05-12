@@ -1,6 +1,6 @@
 {
   "name": "@idiosync/telescope",
-  "version": "2.0.9",
+  "version": "2.0.23",
   "description": "An application framework for react-native",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,7 +48,6 @@
     "react": "^16.12.0"
   },
   "dependencies": {
-    "@types/lodash.isdate": "^4.0.6",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "lodash.isarray": "^4.0.0",
@@ -67,6 +66,7 @@
     "@types/lodash.has": "^4.5.6",
     "@types/lodash.isarray": "^4.0.6",
     "@types/lodash.isboolean": "^3.0.6",
+    "@types/lodash.isdate": "^4.0.6",
     "@types/lodash.isnull": "^3.0.6",
     "@types/lodash.isnumber": "^3.0.6",
     "@types/lodash.isplainobject": "^4.0.6",

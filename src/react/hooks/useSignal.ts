@@ -5,9 +5,9 @@ import { SignalFetcher, Telescope } from "../../map/application-map";
 
 export const useSignal = (signalFetcher: SignalFetcher) => {
   const telescope: Telescope = useTelescope()
-  const signalConfigMap = telescope.signalConfigMap
-  const signalConfig = signalFetcher(signalConfigMap)
+  const signalMap = telescope.signalMap
+  const signal = signalFetcher(signalMap)
 
-  return signalConfig.signal.emit
+  return signal.emit
 }
 

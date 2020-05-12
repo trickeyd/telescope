@@ -9,9 +9,9 @@ import { Relay } from "../signals/relay";
 
 type SignalMap = { [key: string]: Signal<unknown> }
 type SignalConfig = { trigger: string, signal: Signal<unknown> } 
-type SignalConfigMap = { [key: string]: SignalConfig }
-export type SignalGroupFetcher = (signals: SignalConfigMap) => SignalConfig | SignalConfig[]
-export type SignalFetcher = (signals: SignalConfigMap) => SignalConfig
+type SignalTriggerMap = Map<Signal<unknown>, string>
+export type SignalGroupFetcher = (signals: SignalMap) => SignalConfig | SignalConfig[]
+export type SignalFetcher = (signals: any) => Signal<unknown>
 
 export type RelayMap = { [key: string]: Relay }
 export type RelayFetcher = (signals: RelayMap) => Relay
@@ -28,7 +28,7 @@ export interface Telescope {
   createModels: (schemas: SchemaConfig | SchemaConfig[]) => void 
   registerSignals: (signalMaps: SignalMap | SignalMap[]) => void
   registerRelays: (relayMaps: RelayMap | RelayMap[]) => void 
-  signalConfigMap: SignalConfigMap
+  signalMap: SignalMap
   relayMap: RelayMap
 }
 
@@ -36,7 +36,8 @@ const START_DEPTH = 0;
 
 export const createTelescope = (): Telescope => {
   const model: ModelMap = Object.create(null)
-  const signalConfigMap: SignalConfigMap = {}
+  const signalTriggerMap: SignalTriggerMap = new Map() 
+  const signalMap: SignalMap = {}
   const relayMap = {}
   
   let numberOfJobs: number = 0;
@@ -56,12 +57,15 @@ export const createTelescope = (): Telescope => {
   
   return {
     on(signalFetcher: SignalGroupFetcher, scopeFunction: ScopeFunction) {
-      const signalArray = enforceArray(signalFetcher(signalConfigMap))
-      signalArray.forEach(config => {
-        if(config === undefined)
+      const signalArray = enforceArray(signalFetcher(signalMap))
+      signalArray.forEach(signal => {
+        if(signal === undefined)
           throw new Error('Signal undefined. Signals must be registered before they can be mapped')
         
-        config.signal.on(runScope(config.trigger, scopeFunction)) 
+        const trigger = signalTriggerMap.get(signal)
+        if(!trigger) throw new Error('Supplied signal has not been registered')
+
+        signal.on(runScope(trigger, scopeFunction)) 
       })  
     },
     createModels(schemas: SchemaConfig | SchemaConfig[]) {
@@ -78,16 +82,17 @@ export const createTelescope = (): Telescope => {
       )
     },
     registerSignals (signalMaps: SignalMap | SignalMap[]) {
-      enforceArray(signalMaps).reduce((signalConfigMap: SignalConfigMap, signalMap: SignalMap) =>
-        Object.entries(signalMap).reduce(
-          (acc: SignalConfigMap, [key, value]: [string, Signal<unknown>]) => {
+      enforceArray(signalMaps).reduce((signalMapOut: SignalMap, signalMapIn: SignalMap) =>
+        Object.entries(signalMapIn).reduce(
+          (acc: SignalMap, [key, value]: [string, Signal<unknown>]) => {
             if(acc[key]) throw new Error(`Multiple Signals have been applied to the key ${key}`)
-            acc[key] = { trigger: key, signal: value }
+            signalTriggerMap.set(value, key)
+            acc[key] = value
             return acc
           },
-          signalConfigMap
+          signalMapOut
         ),
-        signalConfigMap
+        signalMap
       )
     },
     registerRelays(relayMaps: RelayMap | RelayMap[]) {
@@ -103,7 +108,7 @@ export const createTelescope = (): Telescope => {
       ) 
     },
     model,
-    signalConfigMap,
+    signalMap,
     relayMap
   }
 }

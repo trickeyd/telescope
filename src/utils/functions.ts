@@ -9,3 +9,8 @@ export const executeMiddleware = async (middleware: Middleware | CallbackMiddlew
     await (middleware as Middleware)(data, app)
 }
 
+export const createNamedFunction = (name: string, fn: Function): Function => {
+  Object.defineProperty(fn, "name", {value: name, writable: false});
+  return fn 
+}
+

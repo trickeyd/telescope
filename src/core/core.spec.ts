@@ -11,7 +11,7 @@ import {
   Guard,
   StandardInterface,
   IfInterface,
-  Scope
+  IScope
 } from './core'
 import { Data, createDataObject } from "./data-object";
 import { App } from "./app-object";
@@ -216,7 +216,7 @@ describe('core', () => {
           ids.push(id)
           next()
         }, 20)
-      const mockScope = jest.fn((scope: Scope) => scope(
+      const mockScope = jest.fn((scope: IScope) => scope(
         numberUpdaterWithDelay(3),
         numberUpdater(4)
       ))
@@ -241,7 +241,7 @@ describe('core', () => {
           numberUpdater(1),
           scopeDataAdder('level_1'),
           flowDataAdder('level_1'),
-          (scope: Scope) => scope(
+          (scope: IScope) => scope(
             numberUpdaterWithDelay(2),
             scopeDataAdder('level_2'),
             flowDataAdder('level_2'),
@@ -290,14 +290,14 @@ describe('core', () => {
       beforeEach(async () => {
         createStandardInterface(scope).do(
           middleware,
-          (scope: Scope) => scope.if(() => false)(
+          (scope: IScope) => scope.if(() => false)(
             middleware
           ),
-          (scope: Scope) => scope.if(() => true)(
+          (scope: IScope) => scope.if(() => true)(
             middleware,
-            (scope: Scope) => scope.do(
+            (scope: IScope) => scope.do(
               middleware,
-              (scope: Scope) => scope(
+              (scope: IScope) => scope(
                 middleware
               )
             )
