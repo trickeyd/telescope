@@ -6,6 +6,18 @@ Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debuggin
 
 ![Telescope](https://storage.googleapis.com/idiosync-web-images/telescope/telescope.png "Telescope")
 
+## Installation
+
+yarn:
+```bash
+$ yarn add @idiosync/telescope
+```
+
+npm:
+```bash
+$ npm i @idiosync/telescope
+```
+
 ## Reason
 Telescope aims to present controller logic simply, as if it were procedural code. Due to its 'building block' nature, 
 control logic can be packaged and endlessly restructured for different user interactions, so controllers never have
@@ -57,18 +69,6 @@ Console for above example:
 I have tried to make the syntax very intuitive to anyone that has worked with javascript for a while. For this reason it is probably
 easiest understood it by viewing actual scenarios, as opposed to reading lengthy documentation. I am currently working on a Hello World so
 please bare with me.
-
-## Installation
-
-yarn:
-```bash
-$ yarn add @idiosync/telescope
-```
-
-npm:
-```bash
-$ npm i @idiosync/telescope
-```
 
 ## Setup
 

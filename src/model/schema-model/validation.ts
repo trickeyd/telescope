@@ -149,15 +149,19 @@ export const validateValueBySchemaNode = (value: any, propDescriptor: PropertyDe
       return { isValid: isValid && objectIsValid, validationMap: { __object: result, ...(objectValidationMap as StringToAny) }}
 
     case PropertyType.array:
-      let arrayIsValid = true;
+      let arrayIsValid = true
       const validationMap = { __array: result, values: value.map(
         (arrValue: any) => {
-          const { isValid, validationMap: arrayValidationMap } = validateStoreObject(arrValue, propDescriptor.content) 
+          const { isValid, validationMap: arrayValidationMap } = propDescriptor.content.content
+            ? validateStoreObject(arrValue, propDescriptor.content) 
+            // this is for arrays that have non-object type
+            : validateValueBySchemaNode(arrValue, propDescriptor.content) 
+
           arrayIsValid = isValid ? arrayIsValid : isValid
           return arrayValidationMap 
         }
       )}
-     return { isValid: isValid && arrayIsValid, validationMap } 
+      return { isValid: isValid && arrayIsValid, validationMap } 
 
     default:
       return { isValid, validationMap: `${value} -> ${result}` }

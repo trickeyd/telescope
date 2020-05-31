@@ -12,7 +12,9 @@ export const useProperty = (modelName: string, path: string) => {
 
   const onPropChanged = useCallback((payload: any) => setValue(payload), [])
 
+  console.log({usePropertyValue: value, model})
   useEffect(() => {
+    setValue(model.getProp(path)) 
     model.listenToProperty(path, onPropChanged)
     return () => {
       model.unlistenToProperty(path, onPropChanged)

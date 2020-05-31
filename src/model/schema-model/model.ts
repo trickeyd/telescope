@@ -15,12 +15,14 @@ export interface Model {
 }
 
 export const createModelFromSchema = (name: string, schema: Schema): Model => {
+  let prevStore = Object.create(null)
   let store = Object.create(null)
   let setHasBeenCalled = false
   
   const getProp = (path: string): any => {
     const descriptor = schema.get(path)
     const value = lodashGet(store, path)
+    console.log({path, value, store})
     return clone(value, descriptor);
   }
 
@@ -51,6 +53,7 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
       throw Error(`Model "${name}" failed validation\n${stringify(validationMap)}`)
 
     store = value
+    console.log("SET",{store, value})
   }
 
   const listenToProperty = (path: string, callback: (value: any) => void) => {

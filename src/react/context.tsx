@@ -1,15 +1,22 @@
-import React, { createContext } from 'react'
+import React, { createContext, useEffect } from 'react'
+import { Telescope } from "../map/application-map";
 
-export const TelescopeContext = createContext(null)
+export const TelescopeContext = createContext<Telescope | null>(null)
 
 interface Props {
   children: JSX.Element
-  app: any
+  telescope: Telescope
 }
    
-export const TelescopeProvider = ({ children, app }: Props) => {
+export const TelescopeProvider = ({ children, telescope }: Props) => {
+
+  useEffect(() => {
+    console.log({me:'sdfsdfsdf'})
+    telescope.signalMap.INIT.emit()
+  }, [])
+
   return (
-    <TelescopeContext.Provider value={app}>
+    <TelescopeContext.Provider value={telescope}>
       { children }
     </TelescopeContext.Provider>
   ) 

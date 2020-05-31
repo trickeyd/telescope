@@ -78,7 +78,7 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyD
 // any parent child interaction should be done here
 const parseSchemaObject = (schemaNode: SchemaNode, updateParent: Signal<unknown>, propType: PropertyType): SchemaNodeContent | PropertyDescriptor => {
   if(propType === PropertyType.array){
-    const node =  parseSchemaNode('values', schemaNode)
+    const node = parseSchemaNode('values', schemaNode)
     updateParent && node.updated.on(updateParent.emit)
     return node
   } else {
@@ -104,6 +104,7 @@ export const Schema = (schemaNode: SchemaNode): Schema => {
     get (path: string) {
       const parsedPath = 'content.' + path.split('.').join('.content.').split(/\[.\]/).join('.content') 
       const prop = lodashGet(parsedSchema, parsedPath)
+      console.log({parsedSchema, parsedPath, prop})
       if(!prop) throw Error(`Property "${path}" does not exist on "${parsedSchema.name}".`)
       return prop
     },

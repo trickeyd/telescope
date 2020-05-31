@@ -54,6 +54,25 @@ export const createTelescope = (): Telescope => {
     await scope.exec(data, app)
     app.log('COMPLETE |<--------------  ' + trigger);
   }
+
+  const registerSignals = (signalMaps: SignalMap | SignalMap[]) => {
+      enforceArray(signalMaps).reduce((signalMapOut: SignalMap, signalMapIn: SignalMap) =>
+        Object.entries(signalMapIn).reduce(
+          (acc: SignalMap, [key, value]: [string, Signal<unknown>]) => {
+            if(acc[key]) throw new Error(`Multiple Signals have been applied to the key ${key}`)
+            signalTriggerMap.set(value, key)
+            acc[key] = value
+            return acc
+          },
+          signalMapOut
+        ),
+        signalMap
+      )
+    } 
+
+  registerSignals({
+    INIT: Signal()
+  })
   
   return {
     on(signalFetcher: SignalGroupFetcher, scopeFunction: ScopeFunction) {
@@ -81,20 +100,7 @@ export const createTelescope = (): Telescope => {
         model
       )
     },
-    registerSignals (signalMaps: SignalMap | SignalMap[]) {
-      enforceArray(signalMaps).reduce((signalMapOut: SignalMap, signalMapIn: SignalMap) =>
-        Object.entries(signalMapIn).reduce(
-          (acc: SignalMap, [key, value]: [string, Signal<unknown>]) => {
-            if(acc[key]) throw new Error(`Multiple Signals have been applied to the key ${key}`)
-            signalTriggerMap.set(value, key)
-            acc[key] = value
-            return acc
-          },
-          signalMapOut
-        ),
-        signalMap
-      )
-    },
+    registerSignals,
     registerRelays(relayMaps: RelayMap | RelayMap[]) {
       enforceArray(relayMaps).reduce((relayMapOut: RelayMap, relayMapIn: RelayMap) =>
           Object.entries(relayMapIn).reduce((acc, [key, value]: [string, Relay]) => {
@@ -109,7 +115,7 @@ export const createTelescope = (): Telescope => {
     },
     model,
     signalMap,
-    relayMap
+    relayMap,
   }
 }
  

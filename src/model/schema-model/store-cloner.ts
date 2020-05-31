@@ -1,6 +1,8 @@
 import { PropertyType, PropertyDescriptor } from "./types";
 
 export const clone = (store: any, descriptor: PropertyDescriptor) => {
+  if(!store) return store;
+
   switch(descriptor.type){
     case PropertyType.string:
     case PropertyType.number:
