@@ -8,20 +8,22 @@ export const useProperty = (modelName: string, path: string) => {
   const model: Model = telescope.model[modelName]
   if(!model) throw new Error(`Model ${modelName} does not exist`)
 
-  const propertyUpdated = useRef(model.getPropertyUpdated(path)) 
-
   const [value, setValue] = useState(model.getProp(path))
 
   const onPropChanged = useCallback((latest: any) => {
     if(latest != value) setValue(latest) 
   }, [])
 
+  const latest = model.getProp(path)
   useEffect(() => {
-    const latest = model.getProp(path)
-    if(latest != value) setValue(latest) 
-    propertyUpdated.current.on(onPropChanged)
+    if(latest !== value) setValue(latest) 
+    // TODO - temporary fix
+  }, [JSON.stringify(latest), JSON.stringify(value)])
+
+  useEffect(() => {
+    model.getPropertyUpdated(path).on(onPropChanged)
     return () => {
-      propertyUpdated.current.un(onPropChanged)
+      model.getPropertyUpdated(path).un(onPropChanged)
     }
   })
 
