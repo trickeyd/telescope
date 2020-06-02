@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useTelescope } from "./useTelescope";
 import { Model } from "../../model/schema-model/model";
 import { Telescope } from "../../map/application-map";
@@ -8,16 +8,20 @@ export const useProperty = (modelName: string, path: string) => {
   const model: Model = telescope.model[modelName]
   if(!model) throw new Error(`Model ${modelName} does not exist`)
 
+  const propertyUpdated = useRef(model.getPropertyUpdated(path)) 
+
   const [value, setValue] = useState(model.getProp(path))
 
-  const onPropChanged = useCallback((payload: any) => setValue(payload), [])
+  const onPropChanged = useCallback((latest: any) => {
+    if(latest != value) setValue(latest) 
+  }, [])
 
-  console.log({usePropertyValue: value, model})
   useEffect(() => {
-    setValue(model.getProp(path)) 
-    model.listenToProperty(path, onPropChanged)
+    const latest = model.getProp(path)
+    if(latest != value) setValue(latest) 
+    propertyUpdated.current.on(onPropChanged)
     return () => {
-      model.unlistenToProperty(path, onPropChanged)
+      propertyUpdated.current.un(onPropChanged)
     }
   })
 

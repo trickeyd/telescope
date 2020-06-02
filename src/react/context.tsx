@@ -11,7 +11,6 @@ interface Props {
 export const TelescopeProvider = ({ children, telescope }: Props) => {
 
   useEffect(() => {
-    console.log({me:'sdfsdfsdf'})
     telescope.signalMap.INIT.emit()
   }, [])
 

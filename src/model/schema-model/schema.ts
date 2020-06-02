@@ -27,11 +27,13 @@ import {
 import { validateAll, createValidatorAdder, createLengthValidation, createCommonValidation, createDateValidation } from "./validation";
 import { Signal } from "../../signals/signal";
 
-const createSchemaType = <T extends unknown>(propType: PropertyType, contentNode?: SchemaNode, ...validationEnablerFactories: ValidationEnablerMapFactory[]): T => {
+const createSchemaType = <T extends unknown>(
+  propType: PropertyType,
+  contentNode?: SchemaNode,
+  ...validationEnablerFactories: ValidationEnablerMapFactory[]
+): T => {
   const validators: Validator[] = []
-  const updated: Signal<unknown> = Signal()
-  const content = contentNode ? parseSchemaObject(contentNode, updated, propType) : undefined; 
-  const returnObject: SchemaType = (name: string) => ({ name, type: propType, updated, content, validate: validateAll(validators) })
+  const returnObject: SchemaType = (name: string) => ({ name, type: propType, contentNode, validate: validateAll(validators) })
   const validationEnablerMap = validationEnablerFactories.reduce(
     (acc: ValidationEnablerMap<T>, cur: ValidationEnablerMapFactory) => ({ ...acc, ...cur(returnObject as T, validators) }),
     {}
@@ -61,53 +63,12 @@ export const Obj = (contentSchema: SchemaConfig): IObj => {
   return createSchemaType<IObj>(PropertyType.object, contentSchema, createCommonValidation(isPlainObject, PropertyType.object), createValidatorAdder())
 } 
 
-// replace literals with schema types
-export const parseSchemaNode = (name: string, schemaNode: SchemaNode): PropertyDescriptor => {
-  if(isArray(schemaNode)){
-    if(schemaNode.length > 1)
-      throw Error('Array shorthand in schema may only have one child')
-    return (Arr((schemaNode)[0]))(name) 
-  }
-
-  if(isPlainObject(schemaNode))
-    return (Obj(schemaNode as SchemaConfig))(name)
-
-  return (schemaNode as SchemaType)(name)
-}
-
-// any parent child interaction should be done here
-const parseSchemaObject = (schemaNode: SchemaNode, updateParent: Signal<unknown>, propType: PropertyType): SchemaNodeContent | PropertyDescriptor => {
-  if(propType === PropertyType.array){
-    const node = parseSchemaNode('values', schemaNode)
-    updateParent && node.updated.on(updateParent.emit)
-    return node
-  } else {
-    return Object.entries(schemaNode).reduce(
-      (acc: { [key: string]: PropertyDescriptor}, [key, value]: [string, SchemaNode]) => {
-        const node = acc[key] = parseSchemaNode(key, value)
-        updateParent && node.updated.on(updateParent.emit)
-        return acc 
-      },
-      {}
-    )  
-  }
-}
-
 export interface Schema {
-  get: (path: string) => PropertyDescriptor
-  readonly root: PropertyDescriptor
+  readonly rootSchemaNode: SchemaNode
 }
  
 export const Schema = (schemaNode: SchemaNode): Schema => {
-  const parsedSchema = parseSchemaNode('root', schemaNode) 
   return {
-    get (path: string) {
-      const parsedPath = 'content.' + path.split('.').join('.content.').split(/\[.\]/).join('.content') 
-      const prop = lodashGet(parsedSchema, parsedPath)
-      console.log({parsedSchema, parsedPath, prop})
-      if(!prop) throw Error(`Property "${path}" does not exist on "${parsedSchema.name}".`)
-      return prop
-    },
-    get root() { return parsedSchema },
+    get rootSchemaNode() { return schemaNode } 
   }
 }

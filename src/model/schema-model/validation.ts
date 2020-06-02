@@ -12,6 +12,7 @@ import isUndefined from 'lodash.isundefined'
 import isString from 'lodash.isstring'
 import isNull from 'lodash.isnull'
 import { StringToAny } from "../../types";
+import { ModelNode } from "./model";
 
 export const createCommonValidation = (validateType?: (item: any) => boolean, propType?: PropertyType): ValidationEnablerMapFactory =>
   <T>(returnObject:T, validators: Validator[]) => {
@@ -136,26 +137,31 @@ export const validateAll = (validators: Validator[]) => (item: any): MultiValida
   { isValid: true, failMessage: "" }
   )
 
-export const validateValueBySchemaNode = (value: any, propDescriptor: PropertyDescriptor): ValidateStoreResult => {
-  const { isValid, failMessage } = propDescriptor.validate(value) 
+export const validateValueByModelNode = (value: any, node: ModelNode): ValidateStoreResult => {
+  const descriptor = node.descriptor
+  const { isValid, failMessage } = descriptor.validate(value) 
+
   const result = isValid ? 'passed' : failMessage
 
   if(isUndefined(value))
     return { isValid, validationMap: `${value} -> ${result}` }
 
-  switch(propDescriptor.type){
+  switch(descriptor.type){
     case PropertyType.object:
-      const { isValid: objectIsValid, validationMap: objectValidationMap } = validateStoreObject(value, propDescriptor.content) 
+      const { isValid: objectIsValid, validationMap: objectValidationMap } = validateStoreObject(value, (node.children as ModelNode[])) 
       return { isValid: isValid && objectIsValid, validationMap: { __object: result, ...(objectValidationMap as StringToAny) }}
 
     case PropertyType.array:
       let arrayIsValid = true
       const validationMap = { __array: result, values: value.map(
         (arrValue: any) => {
-          const { isValid, validationMap: arrayValidationMap } = propDescriptor.content.content
-            ? validateStoreObject(arrValue, propDescriptor.content) 
-            // this is for arrays that have non-object type
-            : validateValueBySchemaNode(arrValue, propDescriptor.content) 
+          const arrayChildNode = (node.children as ModelNode[])[0]
+          const arrayChildType = arrayChildNode.descriptor.type
+          const { isValid, validationMap: arrayValidationMap } =
+            arrayChildType === PropertyType.object
+              ? validateStoreObject(arrValue, (arrayChildNode.children as ModelNode[])) 
+              // this is for arrays that have non-object type
+              : validateValueByModelNode(arrValue, arrayChildNode) 
 
           arrayIsValid = isValid ? arrayIsValid : isValid
           return arrayValidationMap 
@@ -168,16 +174,17 @@ export const validateValueBySchemaNode = (value: any, propDescriptor: PropertyDe
   }
 }
    
-const validateStoreObject = (store: StringToAny, schemaNode: SchemaNode): ValidateStoreResult => {
-  const { isValid, storeKeys, validationMap}: ValidateStoreAccumulator = Object.entries(schemaNode).reduce(
+const validateStoreObject = (store: StringToAny, nodes: ModelNode[]): ValidateStoreResult => {
+  const { isValid, storeKeys, validationMap}: ValidateStoreAccumulator = nodes.reduce(
     (
       { isValid: storeIsValid, storeKeys, validationMap }: ValidateStoreAccumulator,
-      [key, propDescriptor]: [string, PropertyDescriptor]
+      node: ModelNode
     ) => {
-      const { isValid: nodeIsValid, validationMap: nodeValidationMap } = validateValueBySchemaNode(store[key], propDescriptor)
-      validationMap[key] = nodeValidationMap;
+      const name = node.descriptor.name 
+      const { isValid: nodeIsValid, validationMap: nodeValidationMap } = validateValueByModelNode(store[name], node)
+      validationMap[name] = nodeValidationMap
       
-      const storeKeyIndex = storeKeys.indexOf(key) 
+      const storeKeyIndex = storeKeys.indexOf(name) 
       storeKeyIndex !== -1 && storeKeys.splice(storeKeyIndex, 1) 
 
       return {

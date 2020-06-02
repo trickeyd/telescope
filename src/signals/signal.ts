@@ -1,7 +1,7 @@
-import { Schema, parseSchemaNode } from "../model/schema-model/schema";
 import { SchemaNode } from "../model/schema-model/types";
-import { validateValueBySchemaNode } from "../model/schema-model/validation";
 import { stringify } from "../utils/strings";
+import { parseSchemaNode } from "../model/schema-model/model";
+import { validateValueByModelNode } from "../model/schema-model/validation";
 
 interface Config {
   isOnce: boolean
@@ -57,7 +57,7 @@ export const Signal = <T extends any = any>(schemaNode?: SchemaNode): Signal<T> 
     }, 
     emit (payload) {
       const { isValid, validationMap } = parsedSchemaNode 
-        ? validateValueBySchemaNode(payload, parsedSchemaNode)
+        ? validateValueByModelNode(payload, parsedSchemaNode)
         : { isValid : true, validationMap: {} } 
 
       if(!isValid)

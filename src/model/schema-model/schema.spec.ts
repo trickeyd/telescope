@@ -98,11 +98,11 @@ describe('schema.ts', () => {
       })
 
       it('should have populated content', () => {
-        expect(Arr({})('prop').content).not.toEqual(undefined)
+        expect(Arr({})('prop').contentNode).not.toEqual(undefined)
       })
 
       it('should handle schema types being passed', () => {
-        expect(Arr(Num())('prop').content).not.toEqual(undefined)
+        expect(Arr(Num())('prop').contentNode).not.toEqual(undefined)
       })
     })
 
@@ -143,72 +143,10 @@ describe('schema.ts', () => {
       })
 
       it('should have populated content', () => {
-        expect(Obj({})('prop').content).not.toEqual(undefined)
+        expect(Obj({})('prop').contentNode).not.toEqual(undefined)
       })
        
     })
   })
 
-  describe.only('when creating a simple schema', () => {
-    beforeEach(() => {
-      schema = Schema(Obj({
-        str: Str(),
-        num: Num(),
-        bool: Bool(),
-        obj: Obj({
-          prop1: Str(),
-          prop2: Num(),
-          obj: Obj({
-            str: Str()
-          })
-        }),
-        arr: Arr({
-          prop1: Str(),
-          prop2: Num()
-        }),
-        arrLit:[{
-          prop: Str()
-        }],
-        arrWithType: Arr(Num()),
-        objLit:{
-          prop: Str()
-        }
-      }))
-    })
-
-    it('should be able to access props on root level', () => {
-      expect(schema.get('str').type).toBe(PropertyType.string)
-      expect(schema.get('num').type).toBe(PropertyType.number)
-      expect(schema.get('bool').type).toBe(PropertyType.boolean)
-      expect(schema.get('obj').type).toBe(PropertyType.object)
-      expect(schema.get('objLit').type).toBe(PropertyType.object)
-      expect(schema.get('arr').type).toBe(PropertyType.array)
-      expect(schema.get('arrLit').type).toBe(PropertyType.array)
-      expect(schema.get('arrWithType').type).toBe(PropertyType.array)
-    })
-
-    it('should be able to access nested props', () => {
-      expect(schema.get('obj.prop1').type).toBe(PropertyType.string)
-      expect(schema.get('obj.prop2').type).toBe(PropertyType.number)
-      expect(schema.get('arr[0]').type).toBe(PropertyType.object)
-      expect(schema.get('arr[0].prop1').type).toBe(PropertyType.string)
-      expect(schema.get('arr[0].prop2').type).toBe(PropertyType.number)
-      expect(schema.get('arrWithType[0]').type).toBe(PropertyType.number)
-      expect(schema.get('obj.obj.str').type).toBe(PropertyType.string)
-    })
-
-    it('should set name to name of property', () => {
-      expect(schema.get('str').name).toBe('str')
-      expect(schema.get('num').name).toBe('num')
-      expect(schema.get('bool').name).toBe('bool')
-      expect(schema.get('obj').name).toBe('obj')
-      expect(schema.get('arr').name).toBe('arr')
-    })
-
-    it('should convert literals to appropriate type', () => {
-      expect(schema.get('arrLit').type).toBe(PropertyType.array)
-      expect(schema.get('objLit').type).toBe(PropertyType.object)
-    })
-
-  })
 })

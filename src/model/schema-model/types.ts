@@ -18,8 +18,7 @@ export interface PropertyDescriptor {
   name:string
   type: PropertyType,
   validate: (item: any) => MultiValidatorResult,
-  content?: any,
-  updated: Signal<unknown>
+  contentNode?: SchemaNode,
 } 
 
 export enum PropertyType {

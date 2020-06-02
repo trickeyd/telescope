@@ -1,7 +1,9 @@
-import { PropertyType, PropertyDescriptor } from "./types";
+/*import { PropertyType, PropertyDescriptor } from "./types";
 
-export const clone = (store: any, descriptor: PropertyDescriptor) => {
+export const clone = (store: any, node: ModelNode) => {
   if(!store) return store;
+
+
 
   switch(descriptor.type){
     case PropertyType.string:
@@ -17,10 +19,10 @@ export const clone = (store: any, descriptor: PropertyDescriptor) => {
     case PropertyType.object:
       return Object.entries(descriptor.content).reduce(
         (acc:{ [key: string]: any }, [key, value]) => {
-          acc[clone(value, descriptor.content[key])]
+          acc[key] = clone(value, descriptor.content[key])
           return acc
         },
         {}
       )
   }
-}
+}*/
