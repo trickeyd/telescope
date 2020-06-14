@@ -176,7 +176,8 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
       throw Error(`Model "${name}" failed validation\n${stringify(validationMap)}`)
 
     store = value
-    console.log("SET",{store, value})
+
+    searchChildren(value, model) 
   }
 
   const getPropertyUpdated = (path: string): Signal => {
