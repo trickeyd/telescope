@@ -40,7 +40,7 @@ const askUserToSaveScope = scope => scope(
   saveDocument
 )
 
-app.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
+telescope.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
   scope => scope.if(documentIsNotSaved)(
     askUserToSaveScope, // <--- above scope is added here
     closeDocument
@@ -76,11 +76,11 @@ App.js:
 ```js
 import { createTelescope, TelescopeProvider } from "@idiosync/telescope"
 
-const app = createTelescope()
+const telescope = createTelescope()
 
 function App() {
   return (
-    <TelescopeProvider app={app}>
+    <TelescopeProvider telescope={telescope}>
       { /* App goes here */ }
     </TelescopeProvider>
   )
@@ -92,12 +92,12 @@ export default App
 ## Models
 
 Data in Telescope is stored in models which are validated whenever anything is changed.
-To achieve this, Schemas are written when setting up the app. As well as type checking, bespoke validation can be added here.
+To achieve this, Schemas are written when setting up telescope. As well as type checking, bespoke validation can be added here.
 
 ```js
 import { createTelescope, Schema, Str, Num } from "@idiosync/telescope"
 
-const app = createTelescope() 
+const telescope = createTelescope() 
 
 // the Schema function accepts an object
 const userModelSchema = Schema({
@@ -105,7 +105,7 @@ const userModelSchema = Schema({
   age: Num().required().validate(age => age < 100 && age >= 18)
 })
 
-app.createModels({
+telescope.createModels({
   USER: userModelSchema
 })
 
@@ -198,7 +198,7 @@ identify themselves and validation can be added if desired.
 ```js
 import { createTelescope, Str, Num } from "@idiosync/telescope"
 
-const app = createTelescope() 
+const telescope = createTelescope() 
 
 const SIGNALS = {
   LOGIN_CLICKED: Signal(),
@@ -208,7 +208,7 @@ const SIGNALS = {
   })
 }
  
-app.registerSignals(SIGNALS)
+telescope.registerSignals(SIGNALS)
 ``` 
 
 Signals are accessed in components with the 'useSignal' hook.
@@ -236,7 +236,7 @@ This is the main meat of the framework. Each one contains a full list of side ef
 user interaction including any required async interactions.
 
 ```js
-app.on(signals => signals.REFRESH_CLICKED,
+telescope.on(signals => signals.REFRESH_CLICKED,
   scope => scope(
     showLoading(true)
   ).if( timeSinceLastUpdateIsMoreThan(1000) )(
