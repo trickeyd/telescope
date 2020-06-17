@@ -4,7 +4,7 @@ import { Telescope } from "../map/application-map";
 export const TelescopeContext = createContext<Telescope | null>(null)
 
 interface Props {
-  children: JSX.Element
+  children: React.ReactNode
   telescope: Telescope
 }
    

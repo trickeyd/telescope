@@ -9,7 +9,8 @@
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "lib": ["ES2018", "dom"] 
+    "lib": ["ES2018", "dom"],
+    "types": ["jest", "node"] 
   },
   "include": ["src"],
   "exclude": ["node_modules", "**/__tests__/*"] 
