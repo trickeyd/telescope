@@ -1,6 +1,6 @@
 [![NPM Version][npm-image]][npm-url]
 # Telescope
-<h3>An MVC framework for React - by  <img  valign="middle" src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_very_small.png" /></h3>
+<h3>An MVC framework for React - by  <a href="https://www.npmjs.com/~idiosync"><img width="100px" height="31px" valign="middle" src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_small.png"></a></h3>
 
 Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debugging - Data validation
 
@@ -20,12 +20,12 @@ $ npm i @idiosync/telescope
 
 ## Reason
 Telescope aims to present controller logic simply, as if it were procedural code. Due to its 'building block' nature, 
-control logic can be packaged and endlessly restructured for different user interactions, so controllers never have
-to trigger more events. For any signal that is emitted, there is a single top down view of every side effect that
+funcitons can be packaged and endlessly restructured for different side effects, so that controllers never have
+to trigger other events. For any signal that is emitted, there is a single top down view of every side effect that
 follows it, making Telescope extremely self-documenting.
 
 Logic is encapsulated into a 'scopes' which are analogous to scopes found in regular vanilla javascript.
-In Telescope however, these scopes are made up of functions and conditional logic and other scopes.
+In Telescope however, these scopes are made up of functions, conditional logic and other scopes.
 As with javascript, scopes have access to their own variables, and the variables of parent scopes.
 
 Telescope's async nature makes it particularly easy to program complex user interactions that are conceptually only a single process.

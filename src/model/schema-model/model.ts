@@ -16,7 +16,6 @@ export interface ModelNode {
   parent?: ModelNode
   updated: Signal,
   descriptor: PropertyDescriptor,
-  lastValue?: any
 }
 
 export interface Model {

@@ -41,6 +41,7 @@ export interface SchemaType {
 interface CommonValidation<T> extends SchemaType { 
   required: () => T
   nullable: () => T
+  defaultValue: () => T
 }
 
 interface LengthValidation<T> extends SchemaType { 
