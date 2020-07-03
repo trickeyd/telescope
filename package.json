@@ -40,18 +40,23 @@
     ],
     "transform": {
       "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    }
+    },
+    "setupFiles": [
+      "raf/polyfill"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>src/setupTests.ts"
+    ]
   },
   "author": "James Trickey",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.12.0"
+    "react": "^16.9.0"
   },
   "dependencies": {
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
-    "lodash.isarray": "^4.0.0",
     "lodash.isboolean": "^3.0.3",
     "lodash.isdate": "^4.0.1",
     "lodash.isnull": "^3.0.0",
@@ -62,11 +67,12 @@
     "lodash.set": "^4.3.2"
   },
   "devDependencies": {
+    "@types/enzyme": "^3.10.5",
+    "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/jest": "^24.9.1",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.has": "^4.5.6",
-    "@types/lodash.isarray": "^4.0.6",
     "@types/lodash.isboolean": "^3.0.6",
     "@types/lodash.isdate": "^4.0.6",
     "@types/lodash.isnull": "^3.0.6",
@@ -77,9 +83,16 @@
     "@types/lodash.set": "^4.3.6",
     "@types/node": "^13.9.3",
     "@types/react": "^16.9.20",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.2",
     "eslint": "^5.16.0",
     "jest": "^25.1.0",
+    "jest-environment-jsdom": "^26.1.0",
     "prettier": "^1.19.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts-ts": "^3.1.0",
+    "react-test-renderer": "^16.13.1",
     "ts-jest": "^25.2.0",
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",

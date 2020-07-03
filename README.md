@@ -118,12 +118,23 @@ import React from 'react';
 import { useProperty } from '@idiosync/telescope'
 
 export const MyComponent = () => {
-  const username = useProperty(models => models.USER, 'username')
+
+  // you can use a fucntion that recieves a ModelMap and returns a Model as the first param
+  // this allows you to type the your own Models if desired
+  const username = useProperty((models: MyModels) => models.USER, 'username')
+
+  // alternatively, using the model name for the first param will also work as shown bellow .
+  const username = useProperty("USER", 'username') 
 
   return (
     <p>{username}</p>
   )
 }
+```
+
+The path string uses the same principal as lodash get functions: 
+```js
+  const username = useProperty("USER", 'loyaltyInfo.numPoints') 
 ```
  
 
@@ -262,6 +273,11 @@ const fetchUserProfile = async (data, app) => {
   const user = await fetch(PROFILE_URL)
   app.model.USER.setProp('username', user.username)  // this will trigger any listening components to update
 }
+```
+
+If you want to type your own ModelMap to fit your model structure, you can instead access them as follows
+```js
+  app.model((modelMap: MyModelMap) => modelMap.USER)
 ```
 
 Functions with three arguments are identical but are supplied with a callback which must be called to continue:

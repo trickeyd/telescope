@@ -1,4 +1,3 @@
-import isArray from 'lodash.isarray'
 import isUndefined from 'lodash.isundefined'
 import isPlainObject from 'lodash.isplainobject'
 import cloneDeep from 'lodash.clonedeep'
@@ -85,7 +84,7 @@ export const parseSchemaNode = (name: string, schemaNode: SchemaNode, parent?: M
 }
 
 const extractDescriptor = (name: string, schemaNode: SchemaNode): PropertyDescriptor => {
-   if(isArray(schemaNode)){
+   if(Array.isArray(schemaNode)){
     if(schemaNode.length > 1)
       throw Error('Array shorthand in schema may only have one child')
     return (Arr((schemaNode)[0]))(name) 

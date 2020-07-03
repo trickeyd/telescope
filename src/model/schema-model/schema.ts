@@ -3,7 +3,6 @@ import isString from 'lodash.isstring'
 import isNumber from 'lodash.isnumber'
 import isDate from 'lodash.isdate'
 import isBoolean from 'lodash.isboolean'
-import isArray from 'lodash.isarray'
 import isUndefined from 'lodash.isundefined'
 import isPlainObject from 'lodash.isplainobject'
 import {
@@ -54,7 +53,7 @@ export const Date = (): IDate => createSchemaType<IDate>(PropertyType.date, unde
 export const Arr = (contentSchema: SchemaNode): IArr => {
   if(isUndefined(contentSchema))
     throw Error('The Arr SchemaType function requires a SchemaNode to be passed.')
-  return createSchemaType<IArr>(PropertyType.array, contentSchema, createCommonValidation(isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
+  return createSchemaType<IArr>(PropertyType.array, contentSchema, createCommonValidation(Array.isArray, PropertyType.array), createValidatorAdder(), createLengthValidation())
 }
 
 export const Obj = (contentSchema: SchemaConfig): IObj => {

@@ -19,7 +19,7 @@ export type RelayFetcher = (signals: RelayMap) => Relay
 export type ServiceMap = Map<string, any>;
 
 type SchemaConfig = { [ key: string ] : Schema }
-type ModelMap = { [ key: string ] : Model }
+export type ModelMap = { [ key: string ] : Model }
 
 
 export interface Telescope {
