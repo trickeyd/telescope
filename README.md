@@ -303,7 +303,7 @@ const isNewUserProfile = (data, app) =>
 const fetchAndStoreUserProfile = scope => scope(
   async (data, app) => {
     const userJson = await fetch(PROFILE_URL)
-    data.scope.set('fetchedUser')
+    data.scope.set('fetchedUser', userJson)
   }
 ).if( isNewUserProfile )(
   (data, app) => {
