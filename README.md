@@ -27,7 +27,7 @@ follows it, making Telescope extremely self-documenting.
 Logic is encapsulated into a 'scopes' which are analogous to scopes found in regular vanilla javascript.
 In Telescope however, these scopes are made up of functions, conditional logic and other scopes.
 As with vanilla javascript, scopes have access to their own variables, and the variables of parent scopes via the data object that
-is passed to each middleware function..
+is passed to each middleware function.
 
 Telescope's async nature makes it particularly easy to program complex user interactions that are conceptually only a single process.
 An example of this would be opening a dialogue, waiting for it to animate and finally reacting to the user's response.
