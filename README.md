@@ -77,7 +77,8 @@ App.js:
 ```js
 import { createTelescope, TelescopeProvider } from "@idiosync/telescope"
 
-const telescope = createTelescope()
+// passing true here enables console debugging. 
+const telescope = createTelescope(true)
 
 function App() {
   return (
