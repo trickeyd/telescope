@@ -34,7 +34,7 @@ export interface Telescope {
 
 const START_DEPTH = 0;
 
-export const createTelescope = (): Telescope => {
+export const createTelescope = (loggingIsActive: boolean = false): Telescope => {
   const model: ModelMap = Object.create(null)
   const signalTriggerMap: SignalTriggerMap = new Map() 
   const signalMap: SignalMap = {}
@@ -44,7 +44,7 @@ export const createTelescope = (): Telescope => {
 
   const runScope = (trigger: string, scopeFunction: ScopeFunction) => async (payload: unknown) => {
     payload = payload || {};
-    const debug: Debug = createDebugObject(`j:${numberOfJobs++}`, START_DEPTH)
+    const debug: Debug = createDebugObject(`j:${numberOfJobs++}`, START_DEPTH, [], loggingIsActive)
     const data = createDataObject({ trigger, payload, scope: new Map(), flow: new Map()})
     const app = createAppObject(model, {}, debug, relayMap)
     const scope: InternalScope = createScope();

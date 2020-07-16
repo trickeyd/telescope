@@ -42,19 +42,21 @@ export interface Debug {
   addToStack: (functionName: string, depth: number, guardResult: boolean | null) => void
   logStack: () => void
   log: (depth: number, ...args: any[]) => void
-  jobId: string,
-  stack: StackItem[]
-  depth: number
+  readonly  jobId: string
+  readonly  stack: StackItem[]
+  readonly depth: number
+  readonly loggingIsActive: boolean
 } 
  
-export const createDebugObject = (jobId: string, depth: number, stack: StackItem[] = []): Debug => {
+export const createDebugObject = (jobId: string, depth: number, stack: StackItem[] = [], loggingIsActive: boolean = false): Debug => {
   return {
-    addToStack: addToStack(stack),
-    logStack: logStack(stack),
-    log: log(jobId, depth),
+    addToStack: loggingIsActive ? addToStack(stack) : stack => {},
+    logStack: loggingIsActive ? logStack(stack) : ()  => {},
+    log: loggingIsActive ? log(jobId, depth) : (jobId, depth)  => {} ,
     get jobId() { return jobId },
     get stack() { return stack },
     get depth() { return depth },
+    get loggingIsActive() { return loggingIsActive }
   }
 }
 

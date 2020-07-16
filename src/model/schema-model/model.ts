@@ -136,7 +136,7 @@ export const createModelFromSchema = (name: string, schema: Schema): Model => {
     let storeNode: any = store
  
     // first loop gets us to the prop in question
-    for(let i = 0, l = parsedPath.length; i < l; i++){
+    for(let i = 0, l = parsedPath.length; i < l; i++) {
 
       const name: string = parsedPath[i]
 

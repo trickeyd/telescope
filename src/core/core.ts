@@ -67,7 +67,7 @@ export const createScope = (): InternalScope => {
     addExec: (exec: Executable) => executables.push(exec),
     exec: async (data: Data, app: App) => {
       for (const executable of executables){
-        const debug = createDebugObject(app.debug.jobId, app.debug.depth, app.debug.stack) 
+        const debug = createDebugObject(app.debug.jobId, app.debug.depth, app.debug.stack, app.debug.loggingIsActive) 
         await executable.exec(
           createDataObject(data),
           createAppObject(app.model, app.service, debug, app.relays)
@@ -153,7 +153,7 @@ const createIfInterface = (scope: InternalScope, conditionalBlocks: ConditionalB
 const Flow = (scope: InternalScope) => (flowFunctions: NonEmptyArray<FlowFunction>): Executable => {
   return {
     exec: async (data: Data, app: App) => {
-      const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack) 
+      const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack, app.debug.loggingIsActive) 
       const newApp = createAppObject(app.model, app.service, debug, app.relays); 
        
       for(const flowFunction of flowFunctions) {
