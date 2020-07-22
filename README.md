@@ -19,6 +19,7 @@ npm:
 $ npm i @idiosync/telescope
 ```
 
+
 ## Reason
 Telescope aims to present controller logic simply, as if it were procedural code. Due to its 'building block' nature, 
 funcitons can be packaged and endlessly restructured for different side effects. This means that for any signal that is emitted,
@@ -73,6 +74,11 @@ Console for above example:
 I have tried to make the Telescope syntax very intuitive to anyone that has worked with javascript for a while. For this reason it is probably
 easiest understood it by viewing actual scenarios, as opposed to reading lengthy documentation. I am currently working on a Hello World so
 please bare with me.
+
+
+## Example
+Often things are far easier to understand with an example so please check out this [Hello World](https://github.com/trickeyd/telescope-example "hello world") :
+ 
 
 ## Setup
 
