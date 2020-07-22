@@ -1,6 +1,7 @@
 [![NPM Version][npm-image]][npm-url]
 # Telescope
-<h3>An MVC framework for React - by  <a href="https://www.npmjs.com/~idiosync"><img width="100px" height="31px" valign="middle" src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_small.png"></a></h3>
+
+<h3>A functional MVC framework for React - by  <a href="https://www.npmjs.com/~idiosync"><img width="100px" height="31px" valign="middle" src="https://storage.googleapis.com/idiosync-web-images/telescope/idiosync_very_small.png"></a></h3>
 
 Reduced boilerplate - Self-documenting syntax - Easy to test - Improved debugging - Data validation
 
@@ -20,22 +21,22 @@ $ npm i @idiosync/telescope
 
 ## Reason
 Telescope aims to present controller logic simply, as if it were procedural code. Due to its 'building block' nature, 
-funcitons can be packaged and endlessly restructured for different side effects, so that controllers never have
-to trigger other events. For any signal that is emitted, there is a single top down view of every side effect that
-follows it, making Telescope extremely self-documenting.
+funcitons can be packaged and endlessly restructured for different side effects. This means that for any signal that is emitted,
+there is a single top down view of every side effect that follows, and no other signals will have to be emitted. This top down view just
+appears as a list of functions which, as they are all named, makes Telescope extremely self-documenting.
 
 Logic is encapsulated into a 'scopes' which are analogous to scopes found in regular vanilla javascript.
-In Telescope however, these scopes are made up of functions, conditional logic and other scopes.
+In Telescope however, these scopes are made up of functions, conditional logic and more scopes.
 As with vanilla javascript, scopes have access to their own variables, and the variables of parent scopes via the data object that
 is passed to each middleware function.
 
-Telescope's async nature makes it particularly easy to program complex user interactions that are conceptually only a single process.
+Telescope's async nature makes it particularly easy to program complex user interactions that can conceptually be seen as a single process.
 An example of this would be opening a dialogue, waiting for it to animate and finally reacting to the user's response.
 
 
 ```js
-const askUserToSaveScope = scope => scope(
-  slideSaveDialogueInFrom("right"),
+const askUserToSaveScope = scope => scope(   //<--- this scope can now be reused in 
+  slideSaveDialogueInFrom("right"),          //<--- response to any emited signal
   askUserToSave
 ).if(userDidClickSave)(
   saveDocument
@@ -49,8 +50,10 @@ telescope.on(signals => signals.CLOSE_DOCUMENT_CLICKED,
 )
 ```
 
-The console window tracks everything that happens, along with any logs or errors at the appropriate point and indentation. 
-The job number allows jobs to be filtered if many are run concurrently.
+The console can track everything that happens step-by-step, along with any 
+logs or errors at the appropriate point and indentation. 
+The job id allows "jobs" to be filtered in the console, which is useful when many are run concurrently.
+(true must be passed into the telescope factory to enable these logs)
 
 Console for above example:
 ```bash
@@ -67,7 +70,7 @@ Console for above example:
 |     j:0     |  COMPLETE |<--------------  CLOSE_DOCUMENT_CLICKED
 ```
 
-I have tried to make the syntax very intuitive to anyone that has worked with javascript for a while. For this reason it is probably
+I have tried to make the Telescope syntax very intuitive to anyone that has worked with javascript for a while. For this reason it is probably
 easiest understood it by viewing actual scenarios, as opposed to reading lengthy documentation. I am currently working on a Hello World so
 please bare with me.
 

@@ -105,7 +105,7 @@ export const createIf = (scope: InternalScope): If =>
             app.log(logString)
             if(pass) {
               // TODO - make new objects for the scope
-              const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack) 
+              const debug = createDebugObject(app.debug.jobId, app.debug.depth + 1, app.debug.stack, app.debug.loggingIsActive) 
               const newApp = createAppObject(app.model, app.service, debug, app.relays);  
               const flow = Flow(createScope())(flowFunctions)
               await flow.exec(data, newApp) 
