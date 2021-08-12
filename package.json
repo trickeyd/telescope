@@ -1,7 +1,7 @@
 {
   "name": "@idiosync/telescope",
-  "version": "2.1.14",
-  "description": "An application framework for react-native",
+  "version": "2.1.16",
+  "description": "A functional MVC framework for React",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -12,41 +12,21 @@
     "test": "jest src",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\""
   },
-  "contributors": [
-    "James Trickey <james.trickeyd@gmail.com>"
-  ],
+  "contributors": ["James Trickey <james.trickeyd@gmail.com>"],
   "repository": {
     "type": "git",
     "url": "https://github.com/trickeyd/telescope.git"
   },
-  "keywords": [
-    "react",
-    "react-native",
-    "framework",
-    "application",
-    "MVC"
-  ],
-  "files": [
-    "lib/**/*"
-  ],
+  "keywords": ["react", "react-native", "framework", "application", "MVC"],
+  "files": ["lib/**/*"],
   "jest": {
-    "testPathIgnorePatterns": [
-      "<rootDir>/lib/"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
+    "testPathIgnorePatterns": ["<rootDir>/lib/"],
+    "moduleFileExtensions": ["ts", "tsx", "js"],
     "transform": {
       "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "setupFiles": [
-      "raf/polyfill"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>src/setupTests.ts"
-    ]
+    "setupFiles": ["raf/polyfill"],
+    "setupFilesAfterEnv": ["<rootDir>src/setupTests.ts"]
   },
   "author": "James Trickey",
   "license": "MIT",
